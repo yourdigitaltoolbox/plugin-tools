@@ -1,0 +1,6 @@
+{
+  "intelephense.environment.documentRoot": "/Users/john/Development/Wordpress/sites/johnkraczek.com/site/web",
+  "intelephense.environment.includePaths": [
+    "/Users/john/Development/Wordpress/sites/johnkraczek.com/site/web/index.php"
+  ]
+}

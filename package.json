@@ -1,0 +1,37 @@
+{
+  "name": "@roots/clover",
+  "version": "0.0.1",
+  "license": "MIT",
+  "private": true,
+  "description": "Clover",
+  "homepage": "https://roots.io/",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://opensource.org/licenses/MIT"
+    }
+  ],
+  "authors": [
+    {
+      "name": "Roots",
+      "email": "team@roots.io"
+    }
+  ],
+  "scripts": {
+    "build": "bud build",
+    "dev": "bud dev"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.26.0",
+    "@roots/bud": "6.23.3",
+    "@roots/bud-preset-recommend": "6.23.3",
+    "@roots/bud-preset-wordpress": "6.23.3"
+  },
+  "dependencies": {
+    "@roots/wordpress-hmr": "6.23.3",
+    "caniuse-lite": ""
+  },
+  "browserslist": [
+    "extends @roots/browserslist-config"
+  ]
+}

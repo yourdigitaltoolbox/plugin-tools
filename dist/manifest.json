@@ -1,0 +1,5 @@
+{
+  "editor.js": "js/editor.js",
+  "runtime.js": "js/runtime.js",
+  "entrypoints.json": "entrypoints.json"
+}
