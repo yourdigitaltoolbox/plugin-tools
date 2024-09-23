@@ -2,7 +2,7 @@
 
 namespace YDTBWP\Commands;
 
-class PluginNameCommand extends \WP_CLI_Command
+class PluginToolsCommand extends \WP_CLI_Command
 {
     public function __construct()
     {

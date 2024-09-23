@@ -2,7 +2,7 @@
 
 namespace YDTBWP\Providers;
 
-class PluginNameServiceProvider implements Provider
+class PluginToolsServiceProvider implements Provider
 {
     protected function providers()
     {

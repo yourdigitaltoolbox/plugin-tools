@@ -12,7 +12,7 @@
  */
 require_once __DIR__.'/vendor/autoload.php';
 
-$clover = new YDTBWP\Providers\PluginNameServiceProvider;
+$clover = new YDTBWP\Providers\PluginToolsServiceProvider;
 $clover->register();
 
 add_action('init', [$clover, 'boot']);

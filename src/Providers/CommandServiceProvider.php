@@ -2,7 +2,7 @@
 
 namespace YDTBWP\Providers;
 
-use YDTBWP\Commands\PluginNameCommand;
+use YDTBWP\Commands\PluginToolsCommand;
 
 class CommandServiceProvider implements Provider
 {
@@ -12,6 +12,6 @@ class CommandServiceProvider implements Provider
             return;
         }
 
-        \WP_CLI::add_command('plugin-name', PluginNameCommand::class);
+        \WP_CLI::add_command('plugin-name', PluginToolsCommand::class);
     }
 }
