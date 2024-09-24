@@ -32,7 +32,8 @@
     }
   },
   "require": {
-    "php": "^8.0"
+    "php": "^8.0",
+    "php-school/cli-menu": "^4.3"
   },
   "scripts": {
     "lint": "pint",

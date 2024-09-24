@@ -10,6 +10,7 @@ class PluginToolsServiceProvider implements Provider
             ApiServiceProvider::class,
             BlockServiceProvider::class,
             CommandServiceProvider::class,
+            // PluginColumnProvider::class,
         ];
     }
 
