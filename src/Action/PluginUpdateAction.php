@@ -26,7 +26,6 @@ class PluginUpdateAction implements Provider
     {
         $out = [$this, 'out'];
         $this->quiet = $quiet;
-        $out('Updating plugins...');
         $checked_plugins = get_option('ydtbwp_push_plugins', []);
         $all_plugins = get_plugins();
         $upgrade_plugins = array();
@@ -35,14 +34,14 @@ class PluginUpdateAction implements Provider
         foreach ((array) $all_plugins as $plugin_file => $plugin_data) {
             if (isset($current->response[$plugin_file])) {
                 $slug = \explode('/', $plugin_file)[0];
-                $out("\n");
-                $out("------- $plugin_file -------\n");
-                $out("\n");
-                $out("Plugin Name: " . $plugin_data['Name'] . "\n");
-                $out("Plugin Version: " . $plugin_data['Version'] . "\n");
-                $out("Plugin Update Version: " . $current->response[$plugin_file]->new_version . "\n");
-                $out("Plugin Update URL: " . $current->response[$plugin_file]->package . "\n");
-                $out("Plugin Slug: " . $slug . "\n");
+                // $out("\n");
+                // $out("------- $plugin_file -------\n");
+                // $out("\n");
+                // $out("Plugin Name: " . $plugin_data['Name'] . "\n");
+                // $out("Plugin Version: " . $plugin_data['Version'] . "\n");
+                // $out("Plugin Update Version: " . $current->response[$plugin_file]->new_version . "\n");
+                // $out("Plugin Update URL: " . $current->response[$plugin_file]->package . "\n");
+                // $out("Plugin Slug: " . $slug . "\n");
 
                 $pluginData = [
                     'plugin_name' => $plugin_data['Name'],
@@ -58,13 +57,17 @@ class PluginUpdateAction implements Provider
             }
         }
         $out("\n");
-        $out("Upgradeable plugins: " . count($upgrade_plugins) . "\n");
+        $out("This Site has | " . count($upgrade_plugins) . " | plugins with pending updates... \nNext checking if the plugins are already updated on the fetch host\n");
         $out("\n");
 
         $fetch_host = get_option('ydtbwp_plugin_fetch_host');
 
         if (!$fetch_host) {
             die('No fetch host found, Please use `wp pt setPluginFetchURL <host>` to set the fetch host');
+        }
+
+        if (!$fetch_host || !is_string($fetch_host) || !preg_match('/^http(s)?:\/\/[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(\/.*)?$/i', $fetch_host)) {
+            die('Invalid URL provided for fetch host. Please use `wp pt setPluginFetchURL <host>` to set the fetch host correctly');
         }
 
         // fetch the current stored plugins from the fetch host
@@ -90,7 +93,9 @@ class PluginUpdateAction implements Provider
             }
         }
 
-        // check if the update version is already stored remotely, if so remove it from the upgrade_plugins array
+        if (empty($upgrade_plugins)) {
+            die("Good News! All plugin updates are already pushed so, No plugins to update \n\n");
+        }
 
         // debug the resultant array.
         // foreach ($upgrade_plugins as $key => $plugin) {
@@ -110,13 +115,17 @@ class PluginUpdateAction implements Provider
 
     private function updateRequest($body)
     {
-        // echo "Sending update request...\n";
+        echo "Sending update request...\n";
         // echo $body;
-        // echo "\n";
+        echo "\n";
 
         $plugin_post_url = get_option('ydtbwp_plugin_host');
         if (!$plugin_post_url) {
             die('No plugin host found, Please use `wp pt setPluginUpdateURL <host>` to set the plugin host');
+        }
+
+        if (!$plugin_post_url || !is_string($plugin_post_url) || !preg_match('/^http(s)?:\/\/[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(\/.*)?$/i', $plugin_post_url)) {
+            die('Invalid URL provided for plugin host. Please use `wp pt setPluginUpdateURL <host>` to set the plugin host correctly');
         }
 
         echo "Post Request against " . $plugin_post_url . "\n\n";
