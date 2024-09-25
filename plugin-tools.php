@@ -2,7 +2,7 @@
 /**
  * Plugin Name:     YDTB Plugin Tools
  * Plugin URI:      https://github.com/johnkraczek/ydtb-plugin-tools
- * Description:     Tools for tracking paid plugin updates. 
+ * Description:     Tools for tracking paid plugin updates.
  * Version:         0.0.1
  * Author:          John Kraczek
  * Author URI:      https://johnkraczek.com/
@@ -10,9 +10,21 @@
  * Text Domain:     ydtb-plugin-tools
  * Domain Path:     /resources/lang
  */
-require_once __DIR__.'/vendor/autoload.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
 $clover = new YDTBWP\Providers\PluginToolsServiceProvider;
 $clover->register();
-
 add_action('init', [$clover, 'boot']);
+
+// setup cron to activate and deactivate with the plugin
+$cron = new YDTBWP\Utils\Cron;
+
+register_activation_hook(
+    __FILE__,
+    [$cron, 'setup_cron_schedule']
+);
+
+register_deactivation_hook(
+    __FILE__,
+    [$cron, 'clear_cron_schedule']
+);

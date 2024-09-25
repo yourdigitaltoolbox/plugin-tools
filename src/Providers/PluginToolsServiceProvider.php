@@ -2,14 +2,16 @@
 
 namespace YDTBWP\Providers;
 
+use YDTBWP\Action\PluginUpdateAction;
+
 class PluginToolsServiceProvider implements Provider
 {
     protected function providers()
     {
         return [
             ApiServiceProvider::class,
-            BlockServiceProvider::class,
             CommandServiceProvider::class,
+            PluginUpdateAction::class,
             // PluginColumnProvider::class,
         ];
     }

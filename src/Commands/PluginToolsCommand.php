@@ -5,6 +5,7 @@ namespace YDTBWP\Commands;
 use PhpSchool\CliMenu\Builder\CliMenuBuilder;
 use PhpSchool\CliMenu\CliMenu;
 use PhpSchool\CliMenu\Style\CheckboxStyle;
+use \YDTBWP\Utils\Encryption;
 
 class PluginToolsCommand extends \WP_CLI_Command
 
@@ -18,7 +19,7 @@ class PluginToolsCommand extends \WP_CLI_Command
     {
         $token = $args[0];
 
-        $data_encryption = new \YDTBWP\Utils\Encryption();
+        $data_encryption = new Encryption();
         $submitted_api_key = sanitize_text_field($token);
         $api_key = $data_encryption->encrypt($submitted_api_key);
 
@@ -30,23 +31,24 @@ class PluginToolsCommand extends \WP_CLI_Command
         }
     }
 
+    public function setPluginUpdateURL($args, $assoc_args)
+    {
+        $host = $args[0];
+        update_option('ydtbwp_plugin_host', $host);
+        \WP_CLI::success('Plugin host set!');
+    }
+
+    public function setPluginFetchURL($args, $assoc_args)
+    {
+        $host = $args[0];
+        update_option('ydtbwp_plugin_fetch_host', $host);
+        \WP_CLI::success('Plugin fetch host set!');
+    }
+
     public function checkUpgradeable()
     {
-        $all_plugins = get_plugins();
-        $upgrade_plugins = array();
-        $current = get_site_transient('update_plugins');
-
-        foreach ((array) $all_plugins as $plugin_file => $plugin_data) {
-            if (isset($current->response[$plugin_file])) {
-                $upgrade_plugins[$plugin_file] = (object) $plugin_data;
-                $upgrade_plugins[$plugin_file]->update = $current->response[$plugin_file];
-            }
-        }
-
-        var_dump($all_plugins);
-
-        //var_dump($upgrade_plugins);
-
+        echo "Checking for upgradeable plugins...\n";
+        do_action('ydtbwp_update_plugins', false);
     }
 
     public function choose()
@@ -58,13 +60,13 @@ class PluginToolsCommand extends \WP_CLI_Command
             echo "Moving " . $item->getText() . " to " . $item->getChecked() ? "tracked" : "untracked";
 
             if ($item->getChecked()) {
-                $tracked = get_option('ydtb_push_plugins', []);
+                $tracked = get_option('ydtbwp_push_plugins', []);
                 $tracked[] = $item->getText();
-                update_option('ydtb_push_plugins', $tracked);
+                update_option('ydtbwp_push_plugins', $tracked);
             } else {
-                $tracked = get_option('ydtb_push_plugins', []);
+                $tracked = get_option('ydtbwp_push_plugins', []);
                 $tracked = array_diff($tracked, [$item->getText()]);
-                update_option('ydtb_push_plugins', $tracked);
+                update_option('ydtbwp_push_plugins', $tracked);
             }
         };
 
@@ -73,7 +75,7 @@ class PluginToolsCommand extends \WP_CLI_Command
         };
 
         $all_plugins = get_plugins();
-        $tracked = get_option('ydtb_push_plugins', []);
+        $tracked = get_option('ydtbwp_push_plugins', []);
         $all_slugs = array_map(function ($key) {
             return explode("/", $key)[0];
         }, array_keys($all_plugins));
