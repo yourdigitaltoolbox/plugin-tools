@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "761c46fa233e64a7bf076fa8136cf4a0",
+    "content-hash": "481a3d8e12e51d9c03e209b21561e2a1",
     "packages": [
         {
             "name": "beberlei/assert",
@@ -72,6 +72,54 @@
                 "source": "https://github.com/beberlei/assert/tree/v3.3.2"
             },
             "time": "2021-12-16T21:41:27+00:00"
+        },
+        {
+            "name": "diversen/php-cli-spinners",
+            "version": "v1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/diversen/php-cli-spinners.git",
+                "reference": "7f1dff53202090c865023adc419c6e2c73a9f5d6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/diversen/php-cli-spinners/zipball/7f1dff53202090c865023adc419c6e2c73a9f5d6",
+                "reference": "7f1dff53202090c865023adc419c6e2c73a9f5d6",
+                "shasum": ""
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^10.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Diversen\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Dennis Iversen",
+                    "email": "dennis.iversen@gmail.com",
+                    "homepage": "https://github.com/diversen",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Show a cli spinner while executing a callback",
+            "homepage": "http://github.com/diversen/php-cli-spinners",
+            "keywords": [
+                "callback",
+                "cli",
+                "spinner"
+            ],
+            "support": {
+                "issues": "https://github.com/diversen/php-cli-spinners/issues",
+                "source": "https://github.com/diversen/php-cli-spinners/tree/v1.1.0"
+            },
+            "time": "2024-03-09T16:11:00+00:00"
         },
         {
             "name": "php-school/cli-menu",

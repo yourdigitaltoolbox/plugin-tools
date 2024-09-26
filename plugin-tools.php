@@ -12,6 +12,8 @@
  */
 require_once __DIR__ . '/vendor/autoload.php';
 
+define('YDTB_PLUGIN_PATH', plugin_dir_path(__FILE__));
+
 $clover = new YDTBWP\Providers\PluginToolsServiceProvider;
 $clover->register();
 add_action('init', [$clover, 'boot']);
