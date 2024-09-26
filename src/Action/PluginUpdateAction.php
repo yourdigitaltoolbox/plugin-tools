@@ -63,11 +63,14 @@ class PluginUpdateAction implements Provider
         $fetch_host = get_option('ydtbwp_plugin_fetch_host');
 
         if (!$fetch_host) {
-            die('No fetch host found, Please use `wp pt setPluginFetchURL <host>` to set the fetch host');
+            echo ('No fetch host found, Please use `wp pt setPluginFetchURL <host>` to set the fetch host');
+            return;
         }
 
         if (!$fetch_host || !is_string($fetch_host) || !preg_match('/^http(s)?:\/\/[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(\/.*)?$/i', $fetch_host)) {
-            die('Invalid URL provided for fetch host. Please use `wp pt setPluginFetchURL <host>` to set the fetch host correctly');
+            echo "Fetch Host: " . $fetch_host . "\n";
+            echo ('Invalid URL provided for fetch host. Please use `wp pt setPluginFetchURL <host>` to set the fetch host correctly');
+            return;
         }
 
         // fetch the current stored plugins from the fetch host
@@ -78,7 +81,8 @@ class PluginUpdateAction implements Provider
         curl_close($ch);
 
         if (!isset($result->plugins)) {
-            die('invlaid data returned from fetch host. Please check the fetch host');
+            echo ('invlaid data returned from fetch host. Please check the fetch host');
+            return;
         }
 
         $currentStoredPlugins = $result->plugins;
@@ -94,7 +98,8 @@ class PluginUpdateAction implements Provider
         }
 
         if (empty($upgrade_plugins)) {
-            die("Good News! All plugin updates are already pushed so, No plugins to update \n\n");
+            echo ("Good News! All plugin updates are already pushed so, No plugins to update \n\n");
+            return;
         }
 
         // debug the resultant array.
@@ -121,11 +126,13 @@ class PluginUpdateAction implements Provider
 
         $plugin_post_url = get_option('ydtbwp_plugin_host');
         if (!$plugin_post_url) {
-            die('No plugin host found, Please use `wp pt setPluginUpdateURL <host>` to set the plugin host');
+            echo ('No plugin host found, Please use `wp pt setPluginUpdateURL <host>` to set the plugin host');
+            return;
         }
 
         if (!$plugin_post_url || !is_string($plugin_post_url) || !preg_match('/^http(s)?:\/\/[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(\/.*)?$/i', $plugin_post_url)) {
-            die('Invalid URL provided for plugin host. Please use `wp pt setPluginUpdateURL <host>` to set the plugin host correctly');
+            echo ('Invalid URL provided for plugin host. Please use `wp pt setPluginUpdateURL <host>` to set the plugin host correctly');
+            return;
         }
 
         echo "Post Request against " . $plugin_post_url . "\n\n";
@@ -133,7 +140,8 @@ class PluginUpdateAction implements Provider
         $data_encryption = new Encryption();
         $encrypted_api_key = get_option('ydtbwp_github_token');
         if (!$encrypted_api_key) {
-            die('No API key found, Please use `wp pt setToken <token>` to set the API key');
+            echo ('No API key found, Please use `wp pt setToken <token>` to set the API key');
+            return;
         }
 
         $api_key = $data_encryption->decrypt($encrypted_api_key);
@@ -162,7 +170,8 @@ class PluginUpdateAction implements Provider
         curl_close($curl);
 
         if ($httpcode !== 200) {
-            die('Error: ' . $httpcode);
+            echo ('Error: ' . $httpcode);
+            return;
         }
 
         echo " The request was successful\n Check Github for the action run status\n";

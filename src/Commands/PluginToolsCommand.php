@@ -115,4 +115,9 @@ class PluginToolsCommand extends \WP_CLI_Command
         var_dump($tracked);
     }
 
+    public function runCron()
+    {
+        do_action('ydtb_check_update_cron');
+    }
+
 }

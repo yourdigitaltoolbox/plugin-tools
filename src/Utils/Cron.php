@@ -17,6 +17,14 @@ class Cron
             'interval' => 60 * 15,
             'display' => __('Quarter Hour'),
         );
+        $schedules['5min'] = array(
+            'interval' => 60 * 5,
+            'display' => __('5 Minutes'),
+        );
+        $schedules['2min'] = array(
+            'interval' => 60 * 2,
+            'display' => __('2 Minutes'),
+        );
         return $schedules;
     }
 
@@ -34,9 +42,30 @@ class Cron
 
     public function runner()
     {
+        echo "Cron Started\n";
+        ob_start();
+        do_action('ydtbwp_update_plugins', false);
+        $output = ob_get_contents();
+        ob_end_clean();
 
         $file = fopen('./cronjob.txt', 'a');
         fwrite($file, sprintf('Hello World [%d]', time()));
         fclose($file);
+
+        $currentDateTime = new \DateTime('now');
+        $currentDateTimeString = $currentDateTime->format('Y-m-d_H:i:s');
+
+        if (!file_exists('./logs/')) {
+            mkdir('./logs/', 0777, true);
+        }
+
+        echo "Logging to ./logs/log-$currentDateTimeString.txt\n";
+
+        $file = fopen("./logs/log-$currentDateTimeString.txt", 'w');
+        fwrite($file, "Cron ran at: " . $currentDateTimeString . "\n");
+        fwrite($file, $output);
+        fclose($file);
+
+        echo $output;
     }
 }
