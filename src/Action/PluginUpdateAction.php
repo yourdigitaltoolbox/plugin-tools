@@ -28,7 +28,7 @@ class PluginUpdateAction implements Provider
     {
         $out = [$this, 'out'];
         $this->quiet = $quiet;
-        $checked_plugins = get_option('ydtbwp_push_plugins', []);
+        $checked_plugins = json_decode(get_option('ydtbwp_push_plugins', []));
         $all_plugins = get_plugins();
         $upgrade_plugins = array();
         $current = get_site_transient('update_plugins');

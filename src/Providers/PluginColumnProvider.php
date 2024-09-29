@@ -33,7 +33,7 @@ class PluginColumnProvider implements Provider
         // Output checkbox for the 'Push Plugin' column
         if ($column_name === 'custom_checkbox') {
 
-            $checked_plugins = get_option('ydtb_push_plugins', []);
+            $checked_plugins = json_decode(get_option('ydtb_push_plugins', []));
             echo var_dump($checked_plugins);
 
             $checked = in_array($plugin_file, $checked_plugins) ? 'checked' : '';

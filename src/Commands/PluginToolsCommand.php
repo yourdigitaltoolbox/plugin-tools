@@ -2,9 +2,7 @@
 
 namespace YDTBWP\Commands;
 
-use PhpSchool\CliMenu\Builder\CliMenuBuilder;
-use PhpSchool\CliMenu\CliMenu;
-use PhpSchool\CliMenu\Style\CheckboxStyle;
+use \YDTBWP\Commands\MultiPluginMenu;
 use \YDTBWP\Utils\Encryption;
 use \YDTBWP\Utils\Requests;
 
@@ -61,64 +59,20 @@ class PluginToolsCommand extends \WP_CLI_Command
 
     public function choose()
     {
+        $menu = new MultiPluginMenu();
+        $menu->build();
+        $selected = $menu->getSelectedPlugins();
 
-        $updateTracked = function (CliMenu $menu) {
-            $item = $menu->getSelectedItem();
-            echo "Moving " . $item->getText() . " to " . $item->getChecked() ? "tracked" : "untracked";
+        echo "Selected Plugins: \n";
+        var_dump($selected);
 
-            if ($item->getChecked()) {
-                $tracked = get_option('ydtbwp_push_plugins', []);
-                $tracked[] = $item->getText();
-                update_option('ydtbwp_push_plugins', $tracked);
-            } else {
-                $tracked = get_option('ydtbwp_push_plugins', []);
-                $tracked = array_diff($tracked, [$item->getText()]);
-                update_option('ydtbwp_push_plugins', $tracked);
-            }
-        };
-
-        $getMax = function () {
-            return count($this->untracked());
-        };
-
-        $all_plugins = get_plugins();
-        $tracked = get_option('ydtbwp_push_plugins', []);
-        $all_slugs = array_map(function ($key) {
-            return explode("/", $key)[0];
-        }, array_keys($all_plugins));
-
-        $menu = (new CliMenuBuilder)
-            ->setTitle('Choose Plugins To Push')
-            ->modifyCheckboxStyle(function (CheckboxStyle $style) {
-                $style->setUncheckedMarker('[○] ')
-                    ->setCheckedMarker('[●] ');
-            })
-            ->addStaticItem('Check the plugins that should be pushed to the tracking system')
-            ->addStaticItem(' ');
-
-        for ($i = 0; $i < count($all_slugs); $i++) {
-            $item = $all_slugs[$i] ?? "";
-            $menu->addCheckboxItem($item, $updateTracked);
-        }
-
-        $menu
-            ->addStaticItem(' ')
-            ->addLineBreak('-');
-        $menu = $menu->build();
-
-        foreach ($menu->getItems() as $item) {
-            if (in_array($item->getText(), $tracked)) {
-                $item->setChecked(true);
-            }
-        }
-
-        $menu->open();
+        update_option('ydtbwp_push_plugins', json_encode($selected));
 
     }
 
     public function checkTracked()
     {
-        $tracked = get_option('ydtb_push_plugins', []);
+        $tracked = json_decode(get_option('ydtbwp_push_plugins', []));
         var_dump($tracked);
     }
 
