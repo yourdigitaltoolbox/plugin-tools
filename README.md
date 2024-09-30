@@ -1,17 +1,4 @@
-<p align="center">
-  <a href="https://roots.io/clover/">
-    <img alt="Clover" src="https://cdn.roots.io/app/uploads/logo-clover.svg" height="100">
-  </a>
-</p>
+## Plugin Tools
 
-<p align="center">
-  <strong>WordPress starter plugin with example blocks, REST endpoints, and a starter test suite</strong>
-</p>
+This is the client plugin for the Plugin Tools project. It will push private paid plugins to a private github organization and make those available via an authenticated Composer Packages repository.
 
-## Sponsors
-
-**Clover** is an open source project that is made available to folks that [sponsor Roots on GitHub](https://roots.io/sponsors/).
-
-## Requirements
-
-* PHP >= 8.0
