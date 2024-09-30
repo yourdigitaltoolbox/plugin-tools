@@ -37,6 +37,11 @@ class PluginUpdateAction implements Provider
             if (isset($current->response[$plugin_file])) {
                 $slug = \explode('/', $plugin_file)[0];
 
+                if ($current->response[$plugin_file]->package == "") {
+                    echo "No update URL found for $plugin_file\n";
+                    continue;
+                }
+
                 $pluginData = [
                     'plugin_name' => $plugin_data['Name'],
                     'plugin_version' => $plugin_data['Version'],
@@ -51,7 +56,7 @@ class PluginUpdateAction implements Provider
         }
         $out("\n");
         $out("This Site has | " . count($upgrade_plugins) . " | plugins with pending updates... ");
-        $out("\n");
+        $out("\n\n");
 
         // We need to check if the plugin has been whitelisted to be pushed to the remote repo.
         foreach ($upgrade_plugins as $key => $plugin) {
@@ -71,7 +76,7 @@ class PluginUpdateAction implements Provider
             return;
         }
 
-        echo "\nThis Site has | " . count($upgrade_plugins) . " | plugins with pending updates that are whitelisted to be pushed to the remote repo.  \n";
+        echo "\nThis Site has | " . count($upgrade_plugins) . " | plugins with pending updates that are whitelisted to be pushed to the remote repo.  \n\n";
 
         // We need to check if the plugin version has been pushed to the remote repo. to do that we need to make a request to the remote repo to get the plugin versions that are currently there.
         $RemotePlugins = Requests::getRemotePlugins();
@@ -84,10 +89,12 @@ class PluginUpdateAction implements Provider
         foreach ($upgrade_plugins as $key => $plugin) {
             if (isset($remotePluginArray[$plugin['plugin_slug']]) && in_array($plugin['plugin_update_version'], $remotePluginArray[$plugin['plugin_slug']])) {
                 unset($upgrade_plugins[$key]);
+
+                echo "\t-- Plugin $plugin[plugin_name] - $plugin[plugin_update_version] is already pushed to the remote repo, removing from possible push list... \n";
             }
         }
 
-        echo "\nThis Site has | " . count($upgrade_plugins) . " | plugins with pending updates, that are whitelisted, and are not already pushed remotely.  \n";
+        echo "\nThis Site has | " . count($upgrade_plugins) . " | plugins with pending updates, that are whitelisted, and are not already pushed remotely.  \n\n";
 
         if (empty($upgrade_plugins)) {
             echo ("Good News! All plugin updates are already pushed so, No plugins to update \n");
