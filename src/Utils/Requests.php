@@ -99,7 +99,7 @@ class Requests
         $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         curl_close($curl);
 
-        if ($httpcode !== 200) {
+        if ($httpcode !== 200 && $httpcode !== 204) {
             echo ('Error: ' . $httpcode);
             return;
         }

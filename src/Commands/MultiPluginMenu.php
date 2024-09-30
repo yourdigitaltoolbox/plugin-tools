@@ -99,9 +99,10 @@ class MultiPluginMenu
         for ($i = 0; $i < count($all_slugs); $i++) {
             $item = $all_slugs[$i] ?? "";
 
+            $trackedItem = null;
+
             if (isset($tracked->{$item})) {
                 $trackedItem = $tracked->{$item};
-
             }
 
             if (isset($this->remote_plugins->$item)) {
@@ -112,10 +113,9 @@ class MultiPluginMenu
                 $trackedItem = "** Set Vendor **";
             }
 
-            echo "Tracked Item: " . $trackedItem;
+            echo $trackedItem . "\n";
 
             $menu->addSplitItem(function (SplitItemBuilder $b) use ($item, $updateTracked, $trackedItem) {
-                echo "Tracked Item: " . $trackedItem;
                 $b->setGutter(5)
                     ->addCheckboxItem($item, $updateTracked)
                     ->addStaticItem($trackedItem);

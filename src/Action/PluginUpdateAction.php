@@ -55,9 +55,14 @@ class PluginUpdateAction implements Provider
 
         // We need to check if the plugin has been whitelisted to be pushed to the remote repo.
         foreach ($upgrade_plugins as $key => $plugin) {
-            if (!in_array($plugin['plugin_slug'], $checked_plugins)) {
+            $slug = explode('/', $plugin['plugin_file'])[0];
+            if (!isset($checked_plugins->$slug)) {
+                echo "\t-- Plugin $slug is not whitelisted, removing from possible push list... \n";
                 unset($upgrade_plugins[$key]);
+                continue;
             }
+            // set the plugin vendor
+            $upgrade_plugins[$key]['plugin_vendor'] = $checked_plugins->$slug;
         }
 
         // if there are no plugins to update then we can return early
@@ -65,6 +70,8 @@ class PluginUpdateAction implements Provider
             $out("No updates for whitelisted plugins Available to push \n\n");
             return;
         }
+
+        echo "\nThis Site has | " . count($upgrade_plugins) . " | plugins with pending updates that are whitelisted to be pushed to the remote repo.  \n\n";
 
         // We need to check if the plugin version has been pushed to the remote repo. to do that we need to make a request to the remote repo to get the plugin versions that are currently there.
         $RemotePlugins = Requests::getRemotePlugins();
@@ -80,26 +87,23 @@ class PluginUpdateAction implements Provider
             }
         }
 
-        // foreach ($upgrade_plugins as $key => $plugin) {
-        //     foreach ($RemotePlugins as $property => $value) {
-        //         if ($plugin['plugin_slug'] === $property) {
-        //             if (in_array($plugin['plugin_update_version'], $value->tags)) {
-        //                 unset($upgrade_plugins[$key]);
-        //             }
-        //         }
-        //     }
-        // }
+        echo "\nThis Site has | " . count($upgrade_plugins) . " | plugins with pending updates, that are whitelisted, and are not already pushed remotely.  \n";
 
         if (empty($upgrade_plugins)) {
-            echo ("Good News! All plugin updates are already pushed so, No plugins to update \n\n");
+            echo ("Good News! All plugin updates are already pushed so, No plugins to update \n");
             return;
         }
 
         $body = new \stdClass();
         $body->ref = "main";
         $body->inputs = new \stdClass();
-        $body->inputs->json = \json_encode($upgrade_plugins);
+        $body->inputs->json = \json_encode(array_values($upgrade_plugins));
 
+        echo "\n------ Generated Plugin Update Info ------\n\n";
+
+        var_dump($body);
+
+        echo "\n\n";
         Requests::updateRequest(json_encode($body));
     }
 

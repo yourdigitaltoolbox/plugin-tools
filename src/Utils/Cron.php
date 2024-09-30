@@ -48,10 +48,6 @@ class Cron
         $output = ob_get_contents();
         ob_end_clean();
 
-        $file = fopen('./cronjob.txt', 'a');
-        fwrite($file, sprintf('Hello World [%d]', time()));
-        fclose($file);
-
         $currentDateTime = new \DateTime('now');
         $currentDateTimeString = $currentDateTime->format('Y-m-d_H:i:s');
 

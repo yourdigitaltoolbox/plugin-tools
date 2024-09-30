@@ -63,11 +63,7 @@ class PluginToolsCommand extends \WP_CLI_Command
         $menu->build();
         $selected = $menu->getSelectedPlugins();
 
-        echo "Selected Plugins: \n";
-        var_dump($selected);
-
         update_option('ydtbwp_push_plugins', json_encode($selected));
-
     }
 
     public function checkTracked()
