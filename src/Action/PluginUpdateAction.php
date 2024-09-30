@@ -67,11 +67,11 @@ class PluginUpdateAction implements Provider
 
         // if there are no plugins to update then we can return early
         if (empty($upgrade_plugins)) {
-            $out("No updates for whitelisted plugins Available to push \n\n");
+            $out("No updates for whitelisted plugins Available to push \n");
             return;
         }
 
-        echo "\nThis Site has | " . count($upgrade_plugins) . " | plugins with pending updates that are whitelisted to be pushed to the remote repo.  \n\n";
+        echo "\nThis Site has | " . count($upgrade_plugins) . " | plugins with pending updates that are whitelisted to be pushed to the remote repo.  \n";
 
         // We need to check if the plugin version has been pushed to the remote repo. to do that we need to make a request to the remote repo to get the plugin versions that are currently there.
         $RemotePlugins = Requests::getRemotePlugins();

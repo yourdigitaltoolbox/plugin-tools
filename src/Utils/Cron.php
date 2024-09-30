@@ -61,7 +61,6 @@ class Cron
         fwrite($file, "Cron ran at: " . $currentDateTimeString . "\n");
         fwrite($file, $output);
         fclose($file);
-
         echo $output;
     }
 }
