@@ -16,13 +16,21 @@ class PluginToolsCommand extends \WP_CLI_Command
 
     public function setToken($args, $assoc_args)
     {
+
+        //@TODO - make the inserting of the token silent so that it is not displayed in the terminal
+
+        if (isset($args[0])) {
+            $token = $args[0];
+        } else {
+            \WP_CLI::error('Please Provide a Token');
+        }
+
         $token = $args[0];
 
-        $data_encryption = new Encryption();
-        $submitted_api_key = sanitize_text_field($token);
-        $api_key = $data_encryption->encrypt($submitted_api_key);
-
-        if (!empty($api_key)) {
+        if (!empty($token)) {
+            $data_encryption = new Encryption();
+            $submitted_api_key = sanitize_text_field($token);
+            $api_key = $data_encryption->encrypt($submitted_api_key);
             update_option('ydtbwp_github_token', $api_key);
             \WP_CLI::success('Token set!');
         } else {
@@ -70,11 +78,6 @@ class PluginToolsCommand extends \WP_CLI_Command
     {
         $tracked = json_decode(get_option('ydtbwp_push_plugins', []));
         var_dump($tracked);
-    }
-
-    public function runCron()
-    {
-        do_action('ydtb_check_update_cron');
     }
 
     public function pushSingle()
