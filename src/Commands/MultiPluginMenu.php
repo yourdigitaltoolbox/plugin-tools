@@ -34,7 +34,7 @@ class MultiPluginMenu
 
             if ($item->getChecked()) {
 
-                $tracked = json_decode(get_option('ydtbwp_push_plugins', []));
+                $tracked = json_decode(get_option('ydtbwp_push_plugins', json_encode([])));
                 if (isset($tracked->{$item->getText()})) {
                     $vendor = $tracked->{$item->getText()};
                 }
@@ -82,7 +82,7 @@ class MultiPluginMenu
         };
 
         $all_plugins = get_plugins();
-        $tracked = json_decode(get_option('ydtbwp_push_plugins', []));
+        $tracked = json_decode(get_option('ydtbwp_push_plugins', json_encode([])));
         $all_slugs = array_map(function ($key) {
             return explode("/", $key)[0];
         }, array_keys($all_plugins));
