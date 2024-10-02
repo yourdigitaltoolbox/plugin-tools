@@ -101,8 +101,14 @@ class PluginToolsCommand extends \WP_CLI_Command
             // if the plugin is tracked then we need to check if the local version is greater than the remote version
             if (version_compare($plugin_data['Version'], $remotePluginArray[$slug], '>')) {
                 $plugins_to_push[$slug] = $plugin_data;
-
             }
+        }
+
+        if (count($plugins_to_push) == 0) {
+            echo "\n---------- Result ----------\n\n";
+            echo "There are no plugins currently available to push. \n\tTry again Later.\n\n";
+            echo "----------------------------\n";
+            return;
         }
 
         // Then we allow the user to choose the local plugin that they want to push
@@ -112,13 +118,18 @@ class PluginToolsCommand extends \WP_CLI_Command
         $selected_slug = $menu->getItem();
         $selected_vendor = $menu->getVendor();
 
+        echo $selected_slug;
+        echo $selected_vendor;
+
+        if ($selected_slug == "" || $selected_vendor == "") {
+            \WP_CLI::error('No plugin selected');
+        }
+
         $selected_plugin = $plugins_to_push[$selected_slug];
 
         $selected_plugin['vendor'] = $selected_vendor;
         $selected_plugin['slug'] = $selected_slug;
-
         // then we will push the plugin to the repo host
         do_action('ydtbwp_push_single_plugin', $selected_plugin);
-
     }
 };

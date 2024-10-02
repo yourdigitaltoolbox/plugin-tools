@@ -139,7 +139,7 @@ class PluginUpdateAction implements Provider
             unlink($outputPath);
         }
 
-        $zipPath = (new ZipDirectory($targetDir, $outputPath))->make();
+        $zipPath = (new ZipDirectory($targetDir, $outputPath, $plugin['slug']))->make();
 
         $newZipPath = $temp_dir . "/" . $plugin['slug'] . "." . $plugin['Version'] . ".zip";
         rename($zipPath, $newZipPath);

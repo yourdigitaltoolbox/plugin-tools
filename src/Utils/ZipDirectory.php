@@ -9,6 +9,7 @@ class ZipDirectory
     public function __construct(
         private string $sourcePath,
         private ?string $outputPath = null,
+        private ?string $folder = null
     ) {
         $this->sourcePath = realpath($this->sourcePath);
 
@@ -47,6 +48,11 @@ class ZipDirectory
                         // Get real and relative path for current file
                         $filePath = $file->getRealPath();
                         $relativePath = substr($filePath, strlen($this->sourcePath) + 1);
+
+                        // Add folder prefix if provided
+                        if ($this->folder) {
+                            $relativePath = $this->folder . '/' . $relativePath;
+                        }
 
                         // Add current file to archive
                         $zip->addFile($filePath, $relativePath);
