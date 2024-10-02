@@ -31,7 +31,7 @@ class SinglePluginMenu
                 ->setPlaceholderText('')
                 ->setValidationFailedText('Please enter at least 3 characters')
                 ->setValidator(function ($input) {
-                    return $input !== '' && strlen($input) > 3;
+                    return $input !== '' && strlen($input) > 2;
                 })
                 ->ask();
             $vendor = $result->fetch();
