@@ -14,7 +14,7 @@ class Cron
     public function set_schedules($schedules)
     {
         $schedules['1hr'] = array(
-            'interval' => 60,
+            'interval' => 60 * 60,
             'display' => __('1 Hour'),
         );
         $schedules['15min'] = array(
