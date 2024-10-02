@@ -132,7 +132,7 @@ class PluginUpdateAction implements Provider
         }
 
         $targetDir = WP_PLUGIN_DIR . "/" . $plugin['slug'];
-        $outputPath = $temp_dir . "/" . $plugin['slug'] . "." . $plugin['Version'] . ".zip";
+        $outputPath = $temp_dir . "/" . $plugin['slug'] . ".zip";
         $outputURL = $temp_url . "/" . $plugin['slug'] . "." . $plugin['Version'] . ".zip";
 
         if (file_exists($outputPath)) {
@@ -140,6 +140,10 @@ class PluginUpdateAction implements Provider
         }
 
         $zipPath = (new ZipDirectory($targetDir, $outputPath))->make();
+
+        $newZipPath = $temp_dir . "/" . $plugin['slug'] . "." . $plugin['Version'] . ".zip";
+        rename($zipPath, $newZipPath);
+        $zipPath = $newZipPath;
 
         echo "$plugin[Name] - $plugin[Version] has been zipped to: \n";
         echo $outputURL . "\n";
