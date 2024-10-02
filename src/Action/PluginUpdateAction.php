@@ -86,11 +86,39 @@ class PluginUpdateAction implements Provider
             $remotePluginArray[$value->slug] = $value->tags;
         }
 
+        $auto_update = get_option('ydtbwp_plugin_auto_update', false);
+        if ($auto_update) {
+            echo "\t** Auto Update is enabled, plugins will be updated automatically **\n";
+            include_once ABSPATH . 'wp-admin/includes/file.php';
+            include_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+            include_once ABSPATH . 'wp-admin/includes/misc.php';
+            require_once ABSPATH . "wp-admin/includes/plugin.php";
+        } else {
+            echo "\t** Auto Update is disabled, plugins will not be updated automatically ** \n\n";
+        }
+
         foreach ($upgrade_plugins as $key => $plugin) {
             if (isset($remotePluginArray[$plugin['plugin_slug']]) && in_array($plugin['plugin_update_version'], $remotePluginArray[$plugin['plugin_slug']])) {
                 unset($upgrade_plugins[$key]);
 
                 echo "\t-- Plugin $plugin[plugin_name] - $plugin[plugin_update_version] is already pushed to the remote repo, removing from possible push list... \n";
+
+                if ($auto_update) {
+
+                    $skin = new \Automatic_Upgrader_Skin();
+                    $upgrader = new \Plugin_Upgrader($skin);
+                    $result = $upgrader->upgrade($plugin['plugin_file']);
+
+                    // Check if the update was successful
+                    if ($result) {
+                        echo " \t   >> Local Plugin Updated Successfully \n";
+                    } else {
+                        echo "\t   >> Local Plugin Update Failed \n";
+                    }
+
+                    // for some reason programically updating the plugin deactivates it, lets just reactivate it here.
+                    activate_plugin($plugin['plugin_file']);
+                }
             }
         }
 

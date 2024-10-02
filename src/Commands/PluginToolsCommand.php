@@ -37,6 +37,18 @@ class PluginToolsCommand extends \WP_CLI_Command
         \WP_CLI::success('Single Plugin host set!');
     }
 
+    public function toggleAutomaticUpdates($args, $assoc_args)
+    {
+        $value = get_option('ydtbwp_plugin_auto_update', false);
+        update_option('ydtbwp_plugin_auto_update', !$value);
+
+        if (!$value) {
+            \WP_CLI::success('Automatic updates enabled!');
+        } else {
+            \WP_CLI::success('Automatic updates disabled!');
+        }
+    }
+
     public function setPluginFetchURL($args, $assoc_args)
     {
         $host = $args[0];

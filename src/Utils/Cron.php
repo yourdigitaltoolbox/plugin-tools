@@ -13,6 +13,10 @@ class Cron
 
     public function set_schedules($schedules)
     {
+        $schedules['1hr'] = array(
+            'interval' => 60,
+            'display' => __('1 Hour'),
+        );
         $schedules['15min'] = array(
             'interval' => 60 * 15,
             'display' => __('Quarter Hour'),
@@ -31,7 +35,7 @@ class Cron
     public function setup_cron_schedule()
     {
         if (!wp_next_scheduled('ydtbwp_cron')) {
-            wp_schedule_event(time(), '15min', 'ydtb_check_update_cron');
+            wp_schedule_event(time(), '1hr', 'ydtb_check_update_cron');
         }
     }
 
