@@ -30,13 +30,6 @@ class PluginToolsCommand extends \WP_CLI_Command
         }
     }
 
-    public function setPluginUpdateURL($args, $assoc_args)
-    {
-        $host = $args[0];
-        update_option('ydtbwp_plugin_host', $host);
-        \WP_CLI::success('Plugin host set!');
-    }
-
     public function setSinglePluginURL($args, $assoc_args)
     {
         $host = $args[0];
