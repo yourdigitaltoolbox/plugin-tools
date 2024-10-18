@@ -3,6 +3,7 @@
 namespace YDTBWP\Providers;
 
 use YDTBWP\Action\PluginUpdateAction;
+use YDTBWP\Action\ThemeUpdateAction;
 
 class PluginToolsServiceProvider implements Provider
 {
@@ -12,6 +13,7 @@ class PluginToolsServiceProvider implements Provider
             ApiServiceProvider::class,
             CommandServiceProvider::class,
             PluginUpdateAction::class,
+            ThemeUpdateAction::class,
             // PluginColumnProvider::class,
         ];
     }

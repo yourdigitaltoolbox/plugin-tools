@@ -30,13 +30,21 @@ class PluginToolsCommand extends \WP_CLI_Command
         }
     }
 
-    public function setSinglePluginURL($args, $assoc_args)
+    public function setSingleUpdateWorkflowURL($args, $assoc_args)
     {
         $host = $args[0];
-        update_option('ydtbwp_plugin_host_single', $host);
+        update_option('ydtbwp_workflow_url_single', $host);
         \WP_CLI::success('Single Plugin host set!');
     }
 
+    public function setUpdateWorkflowURL($args, $assoc_args)
+    {
+        $host = $args[0];
+        update_option('ydtbwp_workflow_url', $host);
+        \WP_CLI::success('Update Workflow URL Set!');
+    }
+
+    # automatically update the plugin when there is an update available after we capture the new version in github
     public function toggleAutomaticUpdates($args, $assoc_args)
     {
         $value = get_option('ydtbwp_plugin_auto_update', false);
@@ -49,20 +57,25 @@ class PluginToolsCommand extends \WP_CLI_Command
         }
     }
 
-    public function setPluginFetchURL($args, $assoc_args)
+    public function setDataFetchURL($args, $assoc_args)
     {
         $host = $args[0];
-        update_option('ydtbwp_plugin_fetch_host', $host);
-        \WP_CLI::success('Plugin fetch host set!');
+        update_option('ydtbwp_fetch_host', $host);
+        \WP_CLI::success('Fetch host set!');
     }
 
-    public function checkUpgradeable()
+    public function checkPlugins()
     {
         echo "Checking for upgradeable plugins...\n";
         do_action('ydtbwp_update_plugins', false);
     }
+    public function checkThemes()
+    {
+        echo "Checking for upgradeable plugins...\n";
+        do_action('ydtbwp_update_themes', false);
+    }
 
-    public function choose()
+    public function choosePlugins()
     {
         $menu = new MultiPluginMenu();
         $menu->build();
@@ -71,9 +84,23 @@ class PluginToolsCommand extends \WP_CLI_Command
         update_option('ydtbwp_push_plugins', json_encode($selected));
     }
 
-    public function checkTracked()
+    public function chooseThemes()
+    {
+        $menu = new MultiThemeMenu();
+        $menu->build();
+        $selected = $menu->getSelectedThemes();
+
+        update_option('ydtbwp_push_themes', json_encode($selected));
+    }
+
+    public function checkTrackedPlugins()
     {
         $tracked = json_decode(get_option('ydtbwp_push_plugins', []));
+        var_dump($tracked);
+    }
+    public function checkTrackedThemes()
+    {
+        $tracked = json_decode(get_option('ydtbwp_push_themes', []));
         var_dump($tracked);
     }
 
@@ -91,7 +118,7 @@ class PluginToolsCommand extends \WP_CLI_Command
 
         // then we need to get the plugins that are tracked from the repo host
 
-        $remotePlugins = Requests::getRemotePlugins();
+        $remotePlugins = Requests::getRemoteData();
 
         $remotePluginArray = [];
 

@@ -4,18 +4,18 @@ namespace YDTBWP\Utils;
 
 class Requests
 {
-    public static function getRemotePlugins()
+    public static function getRemoteData()
     {
-        $fetch_host = get_option('ydtbwp_plugin_fetch_host');
+        $fetch_host = get_option('ydtbwp_fetch_host');
 
         if (!$fetch_host) {
-            echo ('No fetch host found, Please use `wp pt setPluginFetchURL <host>` to set the fetch host');
+            echo ('No fetch host found, Please use `wp pt setDataFetchURL <host>` to set the fetch host');
             return;
         }
 
         if (!$fetch_host || !is_string($fetch_host) || !preg_match('/^http(s)?:\/\/[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(\/.*)?$/i', $fetch_host)) {
             echo "Fetch Host: " . $fetch_host . "\n";
-            echo ('Invalid URL provided for fetch host. Please use `wp pt setPluginFetchURL <host>` to set the fetch host correctly');
+            echo ('Invalid URL provided for fetch host. Please use `wp pt setDataFetchURL <host>` to set the fetch host correctly');
             return;
         }
 
@@ -37,35 +37,36 @@ class Requests
     public static function updateRequest($body, $type = 'list')
     {
         echo "Sending update request...\n";
-        // echo $body;
         echo "\n";
 
         if ($type == 'list') {
-            $plugin_post_url = get_option('ydtbwp_plugin_host');
-            if (!$plugin_post_url) {
-                echo ('No plugin host found, Please use `wp pt setPluginUpdateURL <host>` to set the plugin host');
+            $update_workflow_url = get_option('ydtbwp_workflow_url');
+            if (!$update_workflow_url) {
+                echo ('No plugin host found, Please use `wp pt setUpdateWorkflowURL <host>` to set the plugin host');
                 return;
             }
 
-            if (!$plugin_post_url || !is_string($plugin_post_url) || !preg_match('/^http(s)?:\/\/[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(\/.*)?$/i', $plugin_post_url)) {
-                echo ('Invalid URL provided for plugin host. Please use `wp pt setPluginUpdateURL <host>` to set the plugin host correctly');
+            if (!$update_workflow_url || !is_string($update_workflow_url) || !preg_match('/^http(s)?:\/\/[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(\/.*)?$/i', $update_workflow_url)) {
+                echo ('Invalid URL provided for plugin host. Please use `wp pt setUpdateWorkflowURL <host>` to set the plugin host correctly');
                 return;
             }
         }
         if ($type == 'single') {
-            $plugin_post_url = get_option('ydtbwp_plugin_host_single');
-            if (!$plugin_post_url) {
-                echo ('No plugin host found, Please use `wp pt setSinglePluginURL <host>` to set the plugin host');
+
+            $update_workflow_url = get_option('ydtbwp_workflow_url_single');
+
+            if (!$update_workflow_url) {
+                echo ('No plugin host found, Please use `wp pt setSingleUpdateWorkflowURL <host>` to set the plugin host');
                 return;
             }
 
-            if (!$plugin_post_url || !is_string($plugin_post_url) || !preg_match('/^http(s)?:\/\/[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(\/.*)?$/i', $plugin_post_url)) {
-                echo ('Invalid URL provided for plugin host. Please use `wp pt setSinglePluginURL <host>` to set the plugin host correctly');
+            if (!$update_workflow_url || !is_string($update_workflow_url) || !preg_match('/^http(s)?:\/\/[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(\/.*)?$/i', $update_workflow_url)) {
+                echo ('Invalid URL provided for plugin host. Please use `wp pt setSingleUpdateWorkflowURL <host>` to set the plugin host correctly');
                 return;
             }
         }
 
-        echo "Post Request against " . $plugin_post_url . "\n\n";
+        echo "Post Request against " . $update_workflow_url . "\n\n";
 
         $data_encryption = new Encryption();
         $encrypted_api_key = get_option('ydtbwp_github_token');
@@ -78,7 +79,7 @@ class Requests
 
         $curl = curl_init();
         curl_setopt_array($curl, array(
-            CURLOPT_URL => $plugin_post_url,
+            CURLOPT_URL => $update_workflow_url,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,

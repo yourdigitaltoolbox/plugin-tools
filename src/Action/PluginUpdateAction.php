@@ -79,7 +79,7 @@ class PluginUpdateAction implements Provider
         echo "\nThis Site has | " . count($upgrade_plugins) . " | plugins with pending updates that are whitelisted to be pushed to the remote repo.  \n\n";
 
         // We need to check if the plugin version has been pushed to the remote repo. to do that we need to make a request to the remote repo to get the plugin versions that are currently there.
-        $RemotePlugins = Requests::getRemotePlugins();
+        $RemotePlugins = Requests::getRemoteData();
 
         $remotePluginArray = [];
         foreach ($RemotePlugins as $property => $value) {
