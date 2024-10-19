@@ -17,12 +17,6 @@ class SetupMenu
         $this->fetchURL = get_option('ydtbwp_fetch_host', '');
         $this->automatic_updates = get_option('ydtbwp_plugin_auto_update', false);
 
-        echo "Github Token: " . $this->github_token . "\n";
-        echo "Update Workflow URL: " . $this->update_workflow_url . "\n";
-        echo "Data Fetch URL: " . $this->fetchURL . "\n";
-        echo "Automatic Updates: " . ($this->automatic_updates ? 'Enabled' : 'Disabled') . "\n";
-        // die();
-
     }
 
     private $github_token = '';
