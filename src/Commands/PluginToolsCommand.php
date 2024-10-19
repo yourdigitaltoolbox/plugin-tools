@@ -14,6 +14,17 @@ class PluginToolsCommand extends \WP_CLI_Command
         parent::__construct();
     }
 
+    /**
+     * This section is for plugin configuration
+     */
+
+    public function setup()
+    {
+        $menu = new SetupMenu();
+        $menu->setupPage();
+
+    }
+
     public function setToken($args, $assoc_args)
     {
         $token = $args[0];
@@ -43,7 +54,6 @@ class PluginToolsCommand extends \WP_CLI_Command
         update_option('ydtbwp_workflow_url', $host);
         \WP_CLI::success('Update Workflow URL Set!');
     }
-
     # automatically update the plugin when there is an update available after we capture the new version in github
     public function toggleAutomaticUpdates($args, $assoc_args)
     {
@@ -64,44 +74,62 @@ class PluginToolsCommand extends \WP_CLI_Command
         \WP_CLI::success('Fetch host set!');
     }
 
-    public function checkPlugins()
-    {
-        echo "Checking for upgradeable plugins...\n";
-        do_action('ydtbwp_update_plugins', false);
-    }
-    public function checkThemes()
-    {
-        echo "Checking for upgradeable plugins...\n";
-        do_action('ydtbwp_update_themes', false);
-    }
+    /**
+     * End of plugin configuration
+     */
 
-    public function choosePlugins()
+    public function checkPackages($args, $assoc_args)
     {
-        $menu = new MultiPluginMenu();
-        $menu->build();
-        $selected = $menu->getSelectedPlugins();
-
-        update_option('ydtbwp_push_plugins', json_encode($selected));
-    }
-
-    public function chooseThemes()
-    {
-        $menu = new MultiThemeMenu();
-        $menu->build();
-        $selected = $menu->getSelectedThemes();
-
-        update_option('ydtbwp_push_themes', json_encode($selected));
+        $type = $args[0];
+        if ($type === 'plugin') {
+            echo "Checking for upgradeable plugins...\n";
+            do_action('ydtbwp_update_plugins', false);
+        } elseif ($type === 'theme') {
+            echo "Checking for upgradeable themes...\n";
+            do_action('ydtbwp_update_themes', false);
+        } elseif ($type === 'all') {
+            echo "Checking all upgradable packages (plugins, themes)\n";
+            do_action('ydtbwp_update_plugins', false);
+            do_action('ydtbwp_update_themes', false);
+        } else {
+            \WP_CLI::error('Invalid type specified. Use "plugin", "theme" or "all".');
+        }
     }
 
-    public function checkTrackedPlugins()
+    public function chooseTrackedItems($args, $assoc_args)
     {
-        $tracked = json_decode(get_option('ydtbwp_push_plugins', []));
-        var_dump($tracked);
+        $type = $args[0];
+
+        if ($type === 'plugin') {
+            $menu = new MultiPluginMenu();
+            $menu->build();
+            $selected = $menu->getSelectedPlugins();
+            update_option('ydtbwp_push_plugins', json_encode($selected));
+            \WP_CLI::success('Plugins selected and saved!');
+        } elseif ($type === 'theme') {
+            $menu = new MultiThemeMenu();
+            $menu->build();
+            $selected = $menu->getSelectedThemes();
+            update_option('ydtbwp_push_themes', json_encode($selected));
+            \WP_CLI::success('Themes selected and saved!');
+        } else {
+            \WP_CLI::error('Invalid type specified. Use "plugin" or "theme".');
+        }
     }
-    public function checkTrackedThemes()
+
+    public function checkTrackedPackage($args, $assoc_args)
     {
-        $tracked = json_decode(get_option('ydtbwp_push_themes', []));
-        var_dump($tracked);
+        $type = $args[0];
+
+        if ($type === 'plugin') {
+            $tracked = json_decode(get_option('ydtbwp_push_plugins', '[]'));
+            var_dump($tracked);
+        } elseif ($type === 'theme') {
+            $tracked = json_decode(get_option('ydtbwp_push_themes', '[]'));
+            var_dump($tracked);
+        } else {
+            \WP_CLI::error('Invalid type specified. Use "plugin" or "theme".');
+        }
     }
 
     public function runCron()
@@ -109,7 +137,7 @@ class PluginToolsCommand extends \WP_CLI_Command
         do_action('ydtb_check_update_cron');
     }
 
-    public function pushSingle()
+    public function pushSinglePlugin()
     {
         // first thing is to get all the plugins on the site.
         $plugins_to_push = [];
@@ -117,7 +145,6 @@ class PluginToolsCommand extends \WP_CLI_Command
         $site_plugins = get_plugins();
 
         // then we need to get the plugins that are tracked from the repo host
-
         $remotePlugins = Requests::getRemoteData();
 
         $remotePluginArray = [];
