@@ -14,7 +14,6 @@ class PluginToolsServiceProvider implements Provider
             CommandServiceProvider::class,
             PluginUpdateAction::class,
             ThemeUpdateAction::class,
-            // PluginColumnProvider::class,
         ];
     }
 
