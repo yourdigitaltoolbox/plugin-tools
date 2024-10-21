@@ -2,7 +2,7 @@
 
 namespace YDTBWP\Commands;
 
-use \YDTBWP\Commands\MultiPluginMenu;
+use \YDTBWP\Commands\MultiItemMenu;
 use \YDTBWP\Utils\Encryption;
 use \YDTBWP\Utils\Requests;
 
@@ -100,23 +100,18 @@ class PluginToolsCommand extends \WP_CLI_Command
     {
         $type = $args[0];
 
-        if ($type === 'plugin') {
-            $menu = new MultiPluginMenu();
-            $menu->build();
-            $selected = $menu->getSelectedPlugins();
-            update_option('ydtbwp_push_plugins', json_encode($selected));
-            \WP_CLI::success('Plugins selected and saved!');
-        } elseif ($type === 'theme') {
-            $menu = new MultiThemeMenu();
-            $menu->build();
-            $selected = $menu->getSelectedThemes();
-            var_dump($selected);
+        $valid_types = ['plugin', 'theme'];
 
-            update_option('ydtbwp_push_themes', json_encode($selected));
-            \WP_CLI::success('Themes selected and saved!');
-        } else {
+        if (!in_array($type, $valid_types)) {
             \WP_CLI::error('Invalid type specified. Use "plugin" or "theme".');
+            return;
         }
+
+        $menu = new MultiItemMenu($type);
+        $menu->build();
+        $selected = $menu->getSelectedItems();
+        update_option('ydtbwp_push_' . $type . 's', json_encode($selected));
+        \WP_CLI::success(ucfirst($type) . 's selected and saved!');
     }
 
     public function checkTrackedPackage($args, $assoc_args)

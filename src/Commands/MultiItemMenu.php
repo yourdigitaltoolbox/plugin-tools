@@ -10,59 +10,54 @@ use PhpSchool\CliMenu\MenuItem\SplitItem;
 use PhpSchool\CliMenu\Style\CheckboxStyle;
 use YDTBWP\Utils\Requests;
 
-class MultiThemeMenu
+class MultiItemMenu
 {
+    private $type;
+    private $remote_items = [];
+    private $selectedItems = [];
+    private $all_items = [];
+    private $tracked;
 
-    function __construct()
+    public function __construct($type)
     {
-        $this->remote_themes = Requests::getRemoteData('themes');
+        $this->type = $type;
+        $this->remote_items = Requests::getRemoteData($type . 's');
+        $this->all_items = $this->type === 'theme' ? wp_get_themes() : get_plugins();
+        $this->tracked = json_decode(get_option('ydtbwp_push_' . $this->type . 's', json_encode([])));
     }
 
-    private $remote_themes = [];
-
-    private $selectedThemes = [];
-
-    public function getSelectedThemes()
+    public function getSelectedItems()
     {
-        return $this->selectedThemes;
+        return $this->selectedItems;
     }
 
     public function build()
     {
         $updateTracked = function (CliMenu $menu) {
-
             $item = $menu->getSelectedItem();
             $selection = $item->getText();
-            $all_themes = wp_get_themes();
 
-            $theme_slug = null;
-            foreach ($all_themes as $key => $theme) {
-                if ($theme['Name'] === $selection) {
-                    $theme_slug = $key;
+            $item_slug = null;
+            foreach ($this->all_items as $key => $item_data) {
+                if ($item_data['Name'] === $selection) {
+                    $item_slug = $this->type === 'theme' ? $key : explode("/", $key)[0];
                     break;
                 }
             }
 
-            if (!isset($theme_slug)) {
-                echo "Theme slug not found \n";
-                return;
-            }
-
             if ($item->getChecked()) {
 
-                $tracked = json_decode(get_option('ydtbwp_push_themes', json_encode([])));
-
-                if (isset($tracked->{$theme_slug})) {
-                    $vendor = $tracked->{$theme_slug};
-                }
-                // if there is a remote vendor then we should use that.
-                if (isset($this->remote_themes->$theme_slug)) {
-                    $vendor = $this->remote_themes->$theme_slug->vendor;
+                if (isset($this->tracked->{$item_slug})) {
+                    $vendor = $this->tracked->{$item_slug};
                 }
 
-                // if the theme is not in the remote list then we need to collect the vendor.
+                if (isset($this->remote_items->$item_slug)) {
+                    $vendor = $this->remote_items->$item_slug->vendor;
+                    echo "Vendor Set Remotely: " . $vendor;
+                }
+
                 if (!isset($vendor)) {
-                    echo "Theme not found in remote list, please enter the vendor name\n";
+                    echo ucfirst($this->type) . " not found in remote list, please enter the vendor name\n";
                     $result = $menu->askText()
                         ->setPromptText('Enter The Vendor Name')
                         ->setPlaceholderText('')
@@ -74,7 +69,7 @@ class MultiThemeMenu
                     $vendor = $result->fetch();
                 }
 
-                $this->selectedThemes[$theme_slug] = $vendor;
+                $this->selectedItems[$item_slug] = $vendor;
 
                 // update the menu item with the vendor name
                 $menuItems = $menu->getItems();
@@ -92,26 +87,23 @@ class MultiThemeMenu
                 $menu->redraw();
 
             } else {
-                unset($this->selectedThemes[$theme_slug]);
+                unset($this->selectedItems[$item_slug]);
             }
         };
 
-        $all_themes = wp_get_themes();
-        $tracked = json_decode(get_option('ydtbwp_push_themes', json_encode([])));
-
         $all_slugs = [];
-        foreach ($all_themes as $key => $theme) {
+        foreach ($this->all_items as $key => $item) {
             $slug = explode("/", $key)[0];
-            $all_slugs[$slug] = $theme['Name'];
+            $all_slugs[$slug] = $item['Name'];
         }
 
         $menu = (new CliMenuBuilder)
-            ->setTitle('Choose Themes To Push')
+            ->setTitle('Choose ' . ucfirst($this->type) . 's To Push')
             ->modifyCheckboxStyle(function (CheckboxStyle $style) {
                 $style->setUncheckedMarker('[○] ')
                     ->setCheckedMarker('[●] ');
             })
-            ->addStaticItem('Check the themes that should be pushed to the tracking system')
+            ->addStaticItem('Check the ' . $this->type . 's that should be pushed to the tracking system')
             ->addStaticItem(' ');
 
         for ($i = 0; $i < count($all_slugs); $i++) {
@@ -120,19 +112,16 @@ class MultiThemeMenu
 
             $vendorName = null;
 
-            if (isset($tracked->$slug)) {
-                $vendorName = $tracked->$slug;
+            if (isset($this->tracked->{$slug})) {
+                $vendorName = $this->tracked->{$slug};
             }
 
-            if (isset($this->remote_themes->$slug)) {
-                $vendorName = $this->remote_themes->$slug->vendor;
+            if (isset($this->remote_items->$slug)) {
+                $vendorName = $this->remote_items->$slug->vendor;
             }
-
             if (!isset($vendorName)) {
                 $vendorName = "** Set Vendor **";
             }
-
-            echo $vendorName . "\n";
 
             $name = $all_slugs[$slug];
 
@@ -166,18 +155,20 @@ class MultiThemeMenu
             if ($item instanceof SplitItem) {
                 $splitItems = $item->getItems();
                 $firstItem = $splitItems[0];
-                $themeName = $firstItem->getText();
-                $themeSlug = getKeyByValue($all_slugs, $themeName);
-                if ($themeSlug && isset($tracked->{$themeSlug})) {
+                $itemName = $firstItem->getText();
+                $itemSlug = getKeyByValue($all_slugs, $itemName);
+
+                if ($itemSlug && isset($this->tracked->{$itemSlug})) {
                     $firstItem->setChecked(true);
-                    $this->selectedThemes[$themeSlug] = $tracked->{$themeSlug};
+                    $this->selectedItems[$itemSlug] = $this->tracked->{$itemSlug};
                 }
             } elseif ($item instanceof CheckboxItem) {
-                $themeName = $item->getText();
-                $themeSlug = getKeyByValue($all_slugs, $themeName);
-                if ($themeSlug && isset($tracked->{$themeSlug})) {
+                $itemName = $item->getText();
+                $itemSlug = getKeyByValue($all_slugs, $itemName);
+                if ($itemSlug && isset($this->tracked->{$itemSlug})) {
                     $item->setChecked(true);
-                    $this->selectedThemes[$themeSlug] = $tracked->{$themeSlug};
+                    $this->selectedItems[$itemSlug] = $this->tracked->{$itemSlug};
+
                 }
             }
         }
