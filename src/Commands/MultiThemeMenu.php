@@ -5,6 +5,8 @@ namespace YDTBWP\Commands;
 use PhpSchool\CliMenu\Builder\CliMenuBuilder;
 use PhpSchool\CliMenu\Builder\SplitItemBuilder;
 use PhpSchool\CliMenu\CliMenu;
+use PhpSchool\CliMenu\MenuItem\CheckboxItem;
+use PhpSchool\CliMenu\MenuItem\SplitItem;
 use PhpSchool\CliMenu\Style\CheckboxStyle;
 use YDTBWP\Utils\Requests;
 
@@ -84,7 +86,7 @@ class MultiThemeMenu
                 $menuItems = $menu->getItems();
 
                 foreach ($menuItems as $item) {
-                    if ($item instanceof \PhpSchool\CliMenu\MenuItem\SplitItem) {
+                    if ($item instanceof SplitItem) {
 
                         $splitItems = $item->getItems();
                         $firstItem = $splitItems[0];
@@ -98,6 +100,7 @@ class MultiThemeMenu
             } else {
                 unset($this->selectedThemes[$theme_slug]);
             }
+            var_dump($this->selectedThemes);
         };
 
         $all_themes = wp_get_themes();
@@ -132,8 +135,6 @@ class MultiThemeMenu
                 $vendorName = "** Set Vendor **";
             }
 
-            echo $vendorName . "\n";
-
             $menu->addSplitItem(function (SplitItemBuilder $b) use ($name, $updateTracked, $vendorName) {
                 $b->setGutter(5)
                     ->addCheckboxItem($name, $updateTracked)
@@ -146,23 +147,37 @@ class MultiThemeMenu
             ->addLineBreak('-');
         $menu = $menu->build();
 
-        foreach ($menu->getItems() as $item) {
+        function getKeyByValue(array $array, $value)
+        {
+            foreach ($array as $key => $val) {
+                if ($val === $value) {
+                    return $key;
+                }
+            }
+            return null;
+        }
 
-            if ($item instanceof \PhpSchool\CliMenu\MenuItem\SplitItem) {
+        $key = getKeyByValue($all_slugs, $name);
+
+        foreach ($menu->getItems() as $item) {
+            if ($item instanceof SplitItem) {
                 $splitItems = $item->getItems();
                 $firstItem = $splitItems[0];
-                if (isset($tracked->{$firstItem->getText()})) {
+                $themeName = $firstItem->getText();
+                $themeSlug = getKeyByValue($all_slugs, $themeName);
+                if ($themeSlug && isset($tracked->{$themeSlug})) {
                     $firstItem->setChecked(true);
-                    $this->selectedThemes[$firstItem->getText()] = $tracked->{$firstItem->getText()};
+                    $this->selectedThemes[$themeSlug] = $tracked->{$themeSlug};
                 }
-            } elseif ($item instanceof \PhpSchool\CliMenu\MenuItem\CheckboxItem) {
-                if (isset($tracked->{$item->getText()})) {
+            } elseif ($item instanceof CheckboxItem) {
+                $themeName = $item->getText();
+                $themeSlug = getKeyByValue($all_slugs, $themeName);
+                if ($themeSlug && isset($tracked->{$themeSlug})) {
                     $item->setChecked(true);
-                    $this->selectedThemes[$item->getText()] = $tracked->{$item->getText()};
+                    $this->selectedThemes[$themeSlug] = $tracked->{$themeSlug};
                 }
             }
         }
-
         $menu->open();
     }
 }

@@ -110,6 +110,8 @@ class PluginToolsCommand extends \WP_CLI_Command
             $menu = new MultiThemeMenu();
             $menu->build();
             $selected = $menu->getSelectedThemes();
+            var_dump($selected);
+
             update_option('ydtbwp_push_themes', json_encode($selected));
             \WP_CLI::success('Themes selected and saved!');
         } else {

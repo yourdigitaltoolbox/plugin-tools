@@ -5,6 +5,8 @@ namespace YDTBWP\Commands;
 use PhpSchool\CliMenu\Builder\CliMenuBuilder;
 use PhpSchool\CliMenu\Builder\SplitItemBuilder;
 use PhpSchool\CliMenu\CliMenu;
+use PhpSchool\CliMenu\MenuItem\CheckboxItem;
+use PhpSchool\CliMenu\MenuItem\SplitItem;
 use PhpSchool\CliMenu\Style\CheckboxStyle;
 use YDTBWP\Utils\Requests;
 
@@ -64,7 +66,7 @@ class MultiPluginMenu
                 $menuItems = $menu->getItems();
 
                 foreach ($menuItems as $item) {
-                    if ($item instanceof \PhpSchool\CliMenu\MenuItem\SplitItem) {
+                    if ($item instanceof SplitItem) {
 
                         $splitItems = $item->getItems();
                         $firstItem = $splitItems[0];
@@ -129,14 +131,14 @@ class MultiPluginMenu
 
         foreach ($menu->getItems() as $item) {
 
-            if ($item instanceof \PhpSchool\CliMenu\MenuItem\SplitItem) {
+            if ($item instanceof SplitItem) {
                 $splitItems = $item->getItems();
                 $firstItem = $splitItems[0];
                 if (isset($tracked->{$firstItem->getText()})) {
                     $firstItem->setChecked(true);
                     $this->selectedPlugins[$firstItem->getText()] = $tracked->{$firstItem->getText()};
                 }
-            } elseif ($item instanceof \PhpSchool\CliMenu\MenuItem\CheckboxItem) {
+            } elseif ($item instanceof CheckboxItem) {
                 if (isset($tracked->{$item->getText()})) {
                     $item->setChecked(true);
                     $this->selectedPlugins[$item->getText()] = $tracked->{$item->getText()};
