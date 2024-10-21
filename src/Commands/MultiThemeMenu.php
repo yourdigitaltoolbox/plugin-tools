@@ -15,7 +15,7 @@ class MultiThemeMenu
 
     function __construct()
     {
-        $this->remote_themes = Requests::getRemoteData();
+        $this->remote_themes = Requests::getRemoteData('themes');
     }
 
     private $remote_themes = [];
@@ -31,11 +31,8 @@ class MultiThemeMenu
     {
         $updateTracked = function (CliMenu $menu) {
 
-            echo "Selection Made\n";
-
             $item = $menu->getSelectedItem();
             $selection = $item->getText();
-
             $all_themes = wp_get_themes();
 
             $theme_slug = null;
@@ -47,11 +44,9 @@ class MultiThemeMenu
             }
 
             if (!isset($theme_slug)) {
-                echo "Theme not found in local themes\n";
+                echo "Theme slug not found \n";
                 return;
             }
-
-            echo "Theme Slug: " . $theme_slug;
 
             if ($item->getChecked()) {
 
@@ -61,9 +56,8 @@ class MultiThemeMenu
                     $vendor = $tracked->{$theme_slug};
                 }
                 // if there is a remote vendor then we should use that.
-                if (isset($this->remote_themes->$selection)) {
-                    $vendor = $this->remote_themes->$selection->vendor;
-                    echo "Vendor Set Remotely: " . $vendor;
+                if (isset($this->remote_themes->$theme_slug)) {
+                    $vendor = $this->remote_themes->$theme_slug->vendor;
                 }
 
                 // if the theme is not in the remote list then we need to collect the vendor.
@@ -100,14 +94,17 @@ class MultiThemeMenu
             } else {
                 unset($this->selectedThemes[$theme_slug]);
             }
-            var_dump($this->selectedThemes);
         };
 
         $all_themes = wp_get_themes();
         $tracked = json_decode(get_option('ydtbwp_push_themes', json_encode([])));
-        $all_slugs = array_map(function ($theme) {
-            return $theme["Name"];
-        }, $all_themes);
+
+        $all_slugs = [];
+        foreach ($all_themes as $key => $theme) {
+            $slug = explode("/", $key)[0];
+            $all_slugs[$slug] = $theme['Name'];
+        }
+
         $menu = (new CliMenuBuilder)
             ->setTitle('Choose Themes To Push')
             ->modifyCheckboxStyle(function (CheckboxStyle $style) {
@@ -120,9 +117,9 @@ class MultiThemeMenu
         for ($i = 0; $i < count($all_slugs); $i++) {
 
             $slug = array_keys($all_slugs)[$i];
-            $name = $all_themes[$slug]->Name;
 
             $vendorName = null;
+
             if (isset($tracked->$slug)) {
                 $vendorName = $tracked->$slug;
             }
@@ -135,11 +132,16 @@ class MultiThemeMenu
                 $vendorName = "** Set Vendor **";
             }
 
+            echo $vendorName . "\n";
+
+            $name = $all_slugs[$slug];
+
             $menu->addSplitItem(function (SplitItemBuilder $b) use ($name, $updateTracked, $vendorName) {
                 $b->setGutter(5)
                     ->addCheckboxItem($name, $updateTracked)
                     ->addStaticItem($vendorName);
             });
+
         }
 
         $menu
@@ -160,6 +162,7 @@ class MultiThemeMenu
         $key = getKeyByValue($all_slugs, $name);
 
         foreach ($menu->getItems() as $item) {
+
             if ($item instanceof SplitItem) {
                 $splitItems = $item->getItems();
                 $firstItem = $splitItems[0];
@@ -178,6 +181,7 @@ class MultiThemeMenu
                 }
             }
         }
+
         $menu->open();
     }
 }
