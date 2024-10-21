@@ -64,7 +64,6 @@ class MultiPluginMenu
                 $menuItems = $menu->getItems();
 
                 foreach ($menuItems as $item) {
-                    echo "running through menu items";
                     if ($item instanceof \PhpSchool\CliMenu\MenuItem\SplitItem) {
 
                         $splitItems = $item->getItems();

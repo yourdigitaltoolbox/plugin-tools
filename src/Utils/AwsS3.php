@@ -16,18 +16,16 @@ class AwsS3
 
     public function __construct()
     {
-
     }
 
     public function init()
     {
         $this->loadS3DataFromOptions();
 
-        if ($this->bucketName && $this->region && $this->accessKeyID && $this->secretAccessKey && $this->version) {
-            \WP_CLI::success('S3 configuration is valid!');
-        } else {
+        if (!$this->bucketName || !$this->region || !$this->accessKeyID || !$this->secretAccessKey || !$this->version) {
             \WP_CLI::error('Invalid S3 configuration!');
         }
+
         $this->s3Client = new S3Client([
             'version' => $this->version,
             'region' => $this->region,

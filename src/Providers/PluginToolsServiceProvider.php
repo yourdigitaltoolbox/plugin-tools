@@ -2,8 +2,9 @@
 
 namespace YDTBWP\Providers;
 
-use YDTBWP\Action\PluginUpdateAction;
-use YDTBWP\Action\ThemeUpdateAction;
+use YDTBWP\Action\UpdateAction;
+use YDTBWP\Providers\ApiServiceProvider;
+use YDTBWP\Providers\CommandServiceProvider;
 
 class PluginToolsServiceProvider implements Provider
 {
@@ -12,15 +13,19 @@ class PluginToolsServiceProvider implements Provider
         return [
             ApiServiceProvider::class,
             CommandServiceProvider::class,
-            PluginUpdateAction::class,
-            ThemeUpdateAction::class,
+            new UpdateAction('plugin'),
+            new UpdateAction('theme'),
         ];
     }
 
     public function register()
     {
         foreach ($this->providers() as $service) {
-            (new $service)->register();
+            if (is_string($service)) {
+                (new $service)->register();
+            } else {
+                $service->register();
+            }
         }
     }
 

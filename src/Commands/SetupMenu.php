@@ -6,13 +6,16 @@ use PhpSchool\CliMenu\Action\GoBackAction;
 use PhpSchool\CliMenu\Builder\CliMenuBuilder;
 use PhpSchool\CliMenu\Builder\SplitItemBuilder;
 use PhpSchool\CliMenu\CliMenu;
+use YDTBWP\Utils\Encryption;
 
 class SetupMenu
 {
 
     function __construct()
     {
-        $this->github_token = get_option('ydtbwp_github_token', '');
+        $data_encryption = new Encryption();
+        $api_token = get_option('ydtbwp_github_token', '');
+        $this->github_token = $api_token ? $data_encryption->decrypt($api_token) : '';
         $this->update_workflow_url = get_option('ydtbwp_workflow_url', '');
         $this->fetchURL = get_option('ydtbwp_fetch_host', '');
         $this->automatic_updates = get_option('ydtbwp_plugin_auto_update', false);
@@ -55,8 +58,12 @@ class SetupMenu
         $fetch_url_prompt = $createPrompt('Enter Data Fetch URL', 'Please Enter A Valid URL', 'fetchURL', 'Data Fetch URL: ');
 
         $save_items = function (CliMenu $menu) {
+
+            $data_encryption = new Encryption();
+            $api_token_encrypted = $data_encryption->encrypt($this->github_token);
+
             echo "Saving...\n";
-            update_option('ydtbwp_github_token', $this->github_token);
+            update_option('ydtbwp_github_token', $api_token_encrypted);
             update_option('ydtbwp_workflow_url', $this->update_workflow_url);
             update_option('ydtbwp_fetch_host', $this->fetchURL);
             update_option('ydtbwp_plugin_auto_update', $this->automatic_updates);

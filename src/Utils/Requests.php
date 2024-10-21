@@ -6,9 +6,8 @@ class Requests
 {
     public static function getRemoteData($type = 'plugins')
     {
-
         if (!in_array($type, ['plugins', 'themes'])) {
-            throw new \Exception('Invalid type provided. Only "plugins" or "themes" are allowed.');
+            throw new \Exception('Invalid type provided. Only "plugin" or "theme" are allowed.');
         }
 
         $fetch_host = get_option('ydtbwp_fetch_host');
@@ -83,6 +82,11 @@ class Requests
 
         $api_key = $data_encryption->decrypt($encrypted_api_key);
 
+        if (!$api_key) {
+            echo ('Invalid API key found, Please use `wp pt setToken <token>` to set the API key correctly');
+            return;
+        }
+
         $curl = curl_init();
         curl_setopt_array($curl, array(
             CURLOPT_URL => $update_workflow_url,
@@ -112,7 +116,28 @@ class Requests
         }
 
         echo " The request was successful\n Check Github for the action run status\n";
+        //https://github.com/ydtb-wp/ydtb-wp.github.io/actions/workflows/report-update-debug.yml
+        //https://api.github.com/repos/ydtb-wp/ydtb-wp.github.io/actions/workflows/report-update-list.yml/dispatches
+
+        function transformApiUrlToWebUrl($apiUrl)
+        {
+            $webUrl = str_replace('api.github.com/repos', 'github.com', $apiUrl);
+            $webUrl = str_replace('/dispatches', '', $webUrl);
+            return $webUrl;
+        }
+
+        $webUrl = transformApiUrlToWebUrl($update_workflow_url);
+
+        echo "You can view the status of the action run here: " . $webUrl . "\n";
 
     }
 
+    public static function downloadFile($url, $path)
+    {
+
+        echo "Downloading file from {$url} to {$path}...\n";
+
+        $fileContents = file_get_contents($url);
+        file_put_contents($path, $fileContents);
+    }
 }
