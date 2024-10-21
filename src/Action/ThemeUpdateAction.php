@@ -15,7 +15,7 @@ class ThemeUpdateAction implements Provider
         add_action('ydtbwp_push_single_theme', [$this, 'push_single_theme']);
     }
 
-    public function out(string $arg1): void
+    private function out(string $arg1): void
     {
         if (!$this->quiet) {
             echo $arg1;
@@ -129,6 +129,9 @@ class ThemeUpdateAction implements Provider
             return;
         }
 
+        // this is where we push the themes to the remote repo
+        // if we are using a different method to push the themes to the remote repo, we can do that here.
+
         $body = new \stdClass();
         $body->ref = "main";
         $body->inputs = new \stdClass();
@@ -146,7 +149,6 @@ class ThemeUpdateAction implements Provider
      * Push a single theme to the remote repo
      * This does not proxy a theme update from another source, it is used to zip a local theme and push it to the remote repo.
      */
-
     public function push_single_theme($theme)
     {
         echo "----- Pushing single theme ----- \n";

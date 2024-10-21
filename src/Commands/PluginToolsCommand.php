@@ -132,53 +132,74 @@ class PluginToolsCommand extends \WP_CLI_Command
         }
     }
 
-    public function runCron()
+    public function pushSinglePackage($args, $assoc_args)
     {
-        do_action('ydtb_check_update_cron');
-    }
+        $type = $args[0];
+        if ($type === 'plugin') {
+            $items_to_push = [];
+            $site_items = get_plugins();
+            $remoteItems = Requests::getRemoteData();
+            $remoteItemArray = [];
 
-    public function pushSinglePlugin()
-    {
-        // first thing is to get all the plugins on the site.
-        $plugins_to_push = [];
-
-        $site_plugins = get_plugins();
-
-        // then we need to get the plugins that are tracked from the repo host
-        $remotePlugins = Requests::getRemoteData();
-
-        $remotePluginArray = [];
-
-        foreach ($remotePlugins as $plugin => $data) {
-            $remotePluginArray[$data->slug] = $data->version;
-        }
-
-        // then we need to loop through each plugin and see if the plugin is tracked, if it is then we need to see if the local version is greater than the remote version
-        foreach ($site_plugins as $plugin_file => $plugin_data) {
-            $slug = explode('/', $plugin_file)[0];
-
-            $plugin_data['file_path'] = $plugin_file;
-
-            if (!isset($remotePluginArray[$slug])) {
-                $plugins_to_push[$slug] = $plugin_data;
-                continue;
+            foreach ($remoteItems as $item => $data) {
+                $remoteItemArray[$data->slug] = $data->version;
             }
 
-            // if the plugin is tracked then we need to check if the local version is greater than the remote version
-            if (version_compare($plugin_data['Version'], $remotePluginArray[$slug], '>')) {
-                $plugins_to_push[$slug] = $plugin_data;
+            foreach ($site_items as $item_file => $item_data) {
+                $slug = explode('/', $item_file)[0];
+                $item_data['file_path'] = $item_file;
+
+                if (!isset($remoteItemArray[$slug])) {
+                    $items_to_push[$slug] = $item_data;
+                    continue;
+                }
+
+                if (version_compare($item_data['Version'], $remoteItemArray[$slug], '>')) {
+                    $items_to_push[$slug] = $item_data;
+                }
             }
+
+            $menu_class = 'SinglePluginMenu';
+            $action_hook = 'ydtbwp_push_single_plugin';
+        } elseif ($type === 'theme') {
+            $items_to_push = [];
+            $site_items = wp_get_themes();
+            $remoteItems = Requests::getRemoteData();
+            $remoteItemArray = [];
+
+            foreach ($remoteItems as $item => $data) {
+                $remoteItemArray[$data->slug] = $data->version;
+            }
+
+            foreach ($site_items as $item_slug => $item_data) {
+                $slug = $item_slug;
+                $item_data['file_path'] = $item_data->get_stylesheet_directory();
+
+                if (!isset($remoteItemArray[$slug])) {
+                    $items_to_push[$slug] = $item_data;
+                    continue;
+                }
+
+                if (version_compare($item_data->get('Version'), $remoteItemArray[$slug], '>')) {
+                    $items_to_push[$slug] = $item_data;
+                }
+            }
+
+            $menu_class = 'SingleThemeMenu';
+            $action_hook = 'ydtbwp_push_single_theme';
+        } else {
+            \WP_CLI::error('Invalid type specified. Use "plugin" or "theme".');
+            return;
         }
 
-        if (count($plugins_to_push) == 0) {
+        if (count($items_to_push) == 0) {
             echo "\n---------- Result ----------\n\n";
-            echo "There are no plugins currently available to push. \n\tTry again Later.\n\n";
+            echo "There are no {$type}s currently available to push. \n\tTry again Later.\n\n";
             echo "----------------------------\n";
             return;
         }
 
-        // Then we allow the user to choose the local plugin that they want to push
-        $menu = new SinglePluginMenu($plugins_to_push, $remotePlugins);
+        $menu = new $menu_class($items_to_push, $remoteItems);
         $menu->buildMenu();
 
         $selected_slug = $menu->getItem();
@@ -188,14 +209,60 @@ class PluginToolsCommand extends \WP_CLI_Command
         echo $selected_vendor;
 
         if ($selected_slug == "" || $selected_vendor == "") {
-            \WP_CLI::error('No plugin selected');
+            \WP_CLI::error('No ' . $type . ' selected');
         }
 
-        $selected_plugin = $plugins_to_push[$selected_slug];
+        $selected_item = $items_to_push[$selected_slug];
+        $selected_item['vendor'] = $selected_vendor;
+        $selected_item['slug'] = $selected_slug;
 
-        $selected_plugin['vendor'] = $selected_vendor;
-        $selected_plugin['slug'] = $selected_slug;
-        // then we will push the plugin to the repo host
-        do_action('ydtbwp_push_single_plugin', $selected_plugin);
+        if ($type === 'plugin') {
+            $tracked_plugins = json_decode(get_option('ydtbwp_push_plugins', '[]'), true);
+            $tracked_plugins[$selected_slug] = $selected_item;
+            update_option('ydtbwp_push_plugins', json_encode($tracked_plugins));
+        } elseif ($type === 'theme') {
+            $tracked_themes = json_decode(get_option('ydtbwp_push_themes', '[]'), true);
+            $tracked_themes[$selected_slug] = $selected_item;
+            update_option('ydtbwp_push_themes', json_encode($tracked_themes));
+        }
+
+        do_action($action_hook, $selected_item);
     }
+
+    public function testS3($args, $assoc_args)
+    {
+        echo "Testing S3...\n";
+        $s3 = new \YDTBWP\Utils\AwsS3();
+        $s3->init();
+        $s3->uploadFile('test.txt', 'test.txt');
+        $date = new \DateTime();
+        $date->modify("+1 day");
+        $presigned = $s3->generatePresignedUrl('test.txt', $date);
+        echo $presigned . PHP_EOL;
+    }
+
+    public function setS3Config($args, $assoc_args)
+    {
+        $allowed_params = ['region', 'bucket', 'keyID', 'secretKey'];
+        $s3 = new \YDTBWP\Utils\AwsS3();
+
+        $config = [];
+
+        foreach ($assoc_args as $key => $value) {
+
+            echo $key . ' => ' . $value . PHP_EOL;
+
+            if (in_array($key, $allowed_params)) {
+                $config[$key] = $value;
+            }
+        }
+
+        if (!empty($config)) {
+            $s3->updateS3Config($config);
+            \WP_CLI::success("S3 config updated successfully.");
+        } else {
+            \WP_CLI::error("No valid S3 config parameters provided. Allowed parameters are: region, bucket, keyID, secretKey.");
+        }
+    }
+
 };
