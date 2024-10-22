@@ -36,6 +36,33 @@ class AwsS3
         ]);
     }
 
+    public function getData($key = null)
+    {
+        $properties = [
+            'bucketName' => $this->bucketName,
+            'region' => $this->region,
+            'accessKeyID' => $this->accessKeyID,
+            'version' => $this->version,
+            'secretAccessKey' => $this->secretAccessKey ? '**********' : null,
+        ];
+
+        $data = [];
+
+        foreach ($properties as $propKey => $value) {
+            $data[$propKey] = $value ?: '** Not Set **';
+        }
+
+        if ($key === null) {
+            return $data;
+        }
+
+        if (!array_key_exists($key, $data)) {
+            throw new \InvalidArgumentException("Property '{$key}' does not exist.");
+        }
+
+        return $data[$key];
+    }
+
     public function debugS3Config()
     {
         echo 'Bucket Name: ' . $this->bucketName . PHP_EOL;
@@ -99,7 +126,7 @@ class AwsS3
         \WP_CLI::success('Credentials and data stored successfully!');
     }
 
-    private function loadS3DataFromOptions()
+    public function loadS3DataFromOptions()
     {
         $data_encryption = new Encryption();
         $stored_data = get_option('ydtbwp_s3_data', true);
@@ -109,8 +136,6 @@ class AwsS3
             $this->version = $stored_data['version'] == "" ? $this->version : $stored_data['version'];
             $this->accessKeyID = isset($stored_data['credentials']['accessKeyID']) ? $data_encryption->decrypt($stored_data['credentials']['accessKeyID']) : $this->accessKeyID;
             $this->secretAccessKey = isset($stored_data['credentials']['secretAccessKey']) ? $data_encryption->decrypt($stored_data['credentials']['secretAccessKey']) : $this->secretAccessKey;
-        } else {
-            \WP_CLI::error('No stored data found!');
         }
     }
 

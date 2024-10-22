@@ -25,8 +25,6 @@ class ProxyUpdateStrategy implements UpdateStrategyInterface
 
         foreach ($items as &$item) {
 
-            var_dump($item);
-
             $outputPath = $temp_dir . "/" . $item["slug"] . "." . $item["version"] . ".zip";
             $outputURL = $temp_url . "/" . $item["slug"] . "." . $item["version"] . ".zip";
 
