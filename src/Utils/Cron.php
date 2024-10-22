@@ -46,9 +46,12 @@ class Cron
 
     public function runner()
     {
-        echo "Cron Started\n";
         ob_start();
+        echo "Cron Started\n";
+        echo "Checking for plugin updates...\n";
         do_action('ydtbwp_update_plugins', false);
+        echo "Checking for theme updates...\n";
+        do_action('ydtbwp_update_themes', false);
         $output = ob_get_contents();
         ob_end_clean();
 
