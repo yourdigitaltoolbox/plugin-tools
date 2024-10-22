@@ -4,8 +4,12 @@ namespace YDTBWP\Utils;
 
 class Requests
 {
-    public static function getRemoteData()
+    public static function getRemoteData($type = 'plugins')
     {
+        if (!in_array($type, ['plugins', 'themes'])) {
+            throw new \Exception('Invalid type provided. Only "plugin" or "theme" are allowed.');
+        }
+
         $fetch_host = get_option('ydtbwp_fetch_host');
 
         if (!$fetch_host) {
@@ -19,19 +23,20 @@ class Requests
             return;
         }
 
-        // fetch the current stored plugins from the fetch host
+        // fetch the current stored data from the fetch host
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_URL, $fetch_host);
         $result = json_decode(curl_exec($ch));
         curl_close($ch);
 
-        if (!isset($result->plugins)) {
-            echo ('invlaid data returned from fetch host. Please check the fetch host');
+        if (!isset($result->$type)) {
+            echo ('Invalid data returned from fetch host. Please check the fetch host');
             return;
         }
-        // @TODO we could do more checks here to make sure the plugin data is valid.
-        return $result->plugins;
+
+        // @TODO we could do more checks here to make sure the data is valid.
+        return $result->$type;
     }
 
     public static function updateRequest($body, $type = 'list')
@@ -77,6 +82,11 @@ class Requests
 
         $api_key = $data_encryption->decrypt($encrypted_api_key);
 
+        if (!$api_key) {
+            echo ('Invalid API key found, Please use `wp pt setToken <token>` to set the API key correctly');
+            return;
+        }
+
         $curl = curl_init();
         curl_setopt_array($curl, array(
             CURLOPT_URL => $update_workflow_url,
@@ -107,6 +117,19 @@ class Requests
 
         echo " The request was successful\n Check Github for the action run status\n";
 
+        $webUrl = str_replace('api.github.com/repos', 'github.com', $update_workflow_url);
+        $webUrl = str_replace('/dispatches', '', $webUrl);
+
+        echo "You can view the status of the action run here: " . $webUrl . "\n";
+
     }
 
+    public static function downloadFile($url, $path)
+    {
+
+        echo "Downloading file from {$url} to {$path}...\n";
+
+        $fileContents = file_get_contents($url);
+        file_put_contents($path, $fileContents);
+    }
 }

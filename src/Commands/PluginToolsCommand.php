@@ -2,9 +2,9 @@
 
 namespace YDTBWP\Commands;
 
-use \YDTBWP\Commands\MultiPluginMenu;
+use \YDTBWP\Commands\MultiItemMenu;
+use \YDTBWP\Utils\AwsS3;
 use \YDTBWP\Utils\Encryption;
-use \YDTBWP\Utils\Requests;
 
 class PluginToolsCommand extends \WP_CLI_Command
 
@@ -100,21 +100,18 @@ class PluginToolsCommand extends \WP_CLI_Command
     {
         $type = $args[0];
 
-        if ($type === 'plugin') {
-            $menu = new MultiPluginMenu();
-            $menu->build();
-            $selected = $menu->getSelectedPlugins();
-            update_option('ydtbwp_push_plugins', json_encode($selected));
-            \WP_CLI::success('Plugins selected and saved!');
-        } elseif ($type === 'theme') {
-            $menu = new MultiThemeMenu();
-            $menu->build();
-            $selected = $menu->getSelectedThemes();
-            update_option('ydtbwp_push_themes', json_encode($selected));
-            \WP_CLI::success('Themes selected and saved!');
-        } else {
+        $valid_types = ['plugin', 'theme'];
+
+        if (!in_array($type, $valid_types)) {
             \WP_CLI::error('Invalid type specified. Use "plugin" or "theme".');
+            return;
         }
+
+        $menu = new MultiItemMenu($type);
+        $menu->build();
+        $selected = $menu->getSelectedItems();
+        update_option('ydtbwp_push_' . $type . 's', json_encode($selected));
+        \WP_CLI::success(ucfirst($type) . 's selected and saved!');
     }
 
     public function checkTrackedPackage($args, $assoc_args)
@@ -132,70 +129,28 @@ class PluginToolsCommand extends \WP_CLI_Command
         }
     }
 
-    public function runCron()
+    public function setS3Config($args, $assoc_args)
     {
-        do_action('ydtb_check_update_cron');
-    }
+        $allowed_params = ['region', 'bucket', 'keyID', 'secretKey'];
+        $s3 = new AwsS3();
 
-    public function pushSinglePlugin()
-    {
-        // first thing is to get all the plugins on the site.
-        $plugins_to_push = [];
+        $config = [];
 
-        $site_plugins = get_plugins();
+        foreach ($assoc_args as $key => $value) {
 
-        // then we need to get the plugins that are tracked from the repo host
-        $remotePlugins = Requests::getRemoteData();
+            echo $key . ' => ' . $value . PHP_EOL;
 
-        $remotePluginArray = [];
-
-        foreach ($remotePlugins as $plugin => $data) {
-            $remotePluginArray[$data->slug] = $data->version;
-        }
-
-        // then we need to loop through each plugin and see if the plugin is tracked, if it is then we need to see if the local version is greater than the remote version
-        foreach ($site_plugins as $plugin_file => $plugin_data) {
-            $slug = explode('/', $plugin_file)[0];
-
-            $plugin_data['file_path'] = $plugin_file;
-
-            if (!isset($remotePluginArray[$slug])) {
-                $plugins_to_push[$slug] = $plugin_data;
-                continue;
-            }
-
-            // if the plugin is tracked then we need to check if the local version is greater than the remote version
-            if (version_compare($plugin_data['Version'], $remotePluginArray[$slug], '>')) {
-                $plugins_to_push[$slug] = $plugin_data;
+            if (in_array($key, $allowed_params)) {
+                $config[$key] = $value;
             }
         }
 
-        if (count($plugins_to_push) == 0) {
-            echo "\n---------- Result ----------\n\n";
-            echo "There are no plugins currently available to push. \n\tTry again Later.\n\n";
-            echo "----------------------------\n";
-            return;
+        if (!empty($config)) {
+            $s3->updateS3Config($config);
+            \WP_CLI::success("S3 config updated successfully.");
+        } else {
+            \WP_CLI::error("No valid S3 config parameters provided. Allowed parameters are: region, bucket, keyID, secretKey.");
         }
-
-        // Then we allow the user to choose the local plugin that they want to push
-        $menu = new SinglePluginMenu($plugins_to_push, $remotePlugins);
-        $menu->buildMenu();
-
-        $selected_slug = $menu->getItem();
-        $selected_vendor = $menu->getVendor();
-
-        echo $selected_slug;
-        echo $selected_vendor;
-
-        if ($selected_slug == "" || $selected_vendor == "") {
-            \WP_CLI::error('No plugin selected');
-        }
-
-        $selected_plugin = $plugins_to_push[$selected_slug];
-
-        $selected_plugin['vendor'] = $selected_vendor;
-        $selected_plugin['slug'] = $selected_slug;
-        // then we will push the plugin to the repo host
-        do_action('ydtbwp_push_single_plugin', $selected_plugin);
     }
+
 };
