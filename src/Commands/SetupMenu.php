@@ -116,7 +116,7 @@ class SetupMenu
 
             ->addSplitItem(function (SplitItemBuilder $b) use ($update_workflow_url_prompt) {
                 $b->setGutter(5)
-                    ->addItem('Set Update Workflow URL', $update_workflow_url_prompt)
+                    ->addItem('Set GitHub Update Workflow Dispatch URL', $update_workflow_url_prompt)
                     ->addSubMenu('Additional Info Update Workflow URL', function (CliMenuBuilder $b) {
                         $b->disableDefaultItems()
                             ->setTitle('Update Workflow URL Information')
@@ -128,7 +128,7 @@ class SetupMenu
                             ->addItem('Back', new GoBackAction); // add a go back button
                     });
             })
-            ->addStaticItem('Update Workflow URL: ' . ($this->update_workflow_url ? $this->update_workflow_url : 'Not Set'))
+            ->addStaticItem('URL: ' . ($this->update_workflow_url ? $this->update_workflow_url : 'Not Set'))
             ->addStaticItem('')
 
             ->addSplitItem(function (SplitItemBuilder $b) use ($fetch_url_prompt) {
@@ -201,13 +201,16 @@ class SetupMenu
                             ->addStaticItem('') // add a blank line
                             ->addItem('Back', new GoBackAction); // add a go back button
                     });
-            });
+            })
+            ->addStaticItem('-----------------------------');
 
         foreach ($this->push_methods as $method) {
             $menu->addRadioItem(ucFirst($method), $push_strategy_cb);
         };
 
-        $menu->addItem('Set S3 Information', function (CliMenu $menu) {
+        $menu->addStaticItem('');
+
+        $menu->addSubMenu('Set S3 Connection Information', function (CliMenuBuilder $b) {
 
             $s3 = new \YDTBWP\Utils\AwsS3();
             $s3->loadS3DataFromOptions();
@@ -228,7 +231,7 @@ class SetupMenu
                     $s3->updateS3Config($config);
 
                     foreach ($menu->getItems() as $item) {
-                        if ($item instanceof \PhpSchool\CliMenu\MenuItem\StaticItem) {
+                        if ($item instanceof \PhpSchool\CliMenu\MenuItem\SplitItem) {
                             foreach ($item->getItems() as $subItem) {
                                 if ($subItem instanceof \PhpSchool\CliMenu\MenuItem\StaticItem  && strpos($subItem->getText(), $staticItemPrefix) === 0) {
                                     $subItem->setText($staticItemPrefix . $config[$configKey]);
@@ -245,9 +248,8 @@ class SetupMenu
             $s3_bucket_prompt = $createS3Prompt('Enter S3 Bucket', 'Please Enter A Valid Bucket', 'bucket', 'Current S3 Bucket: ');
             $s3_region_prompt = $createS3Prompt('Enter S3 Region', 'Please Enter A Valid Region', 'region', 'Current S3 Region: ');
 
-            $submenu = (new CliMenuBuilder)
-                ->setTitle('S3 Information');
-
+            $b->setTitle('S3 Information')
+                ->addStaticItem('');
             $s3_prompts = [
                 'keyID' => ['prompt' => $s3_key_prompt, 'label' => 'S3 Key', 'data' => $data['accessKeyID']],
                 'secretKey' => ['prompt' => $s3_secret_prompt, 'label' => 'S3 Secret', 'data' => $data['secretAccessKey']],
@@ -256,18 +258,16 @@ class SetupMenu
             ];
 
             foreach ($s3_prompts as $configKey => $config) {
-                $submenu->addSplitItem(function (SplitItemBuilder $b) use ($config) {
+                $b->addSplitItem(function (SplitItemBuilder $b) use ($config) {
                     $b->setGutter(5)
                         ->addStaticItem('Current ' . $config['label'] . ': ' . $config['data'])
                         ->addItem('Set ' . $config['label'], $config['prompt']);
                 });
             }
 
-            $submenu->addStaticItem('')
+            $b->addStaticItem('')
                 ->addLineBreak('-')
-                ->setExitButtonText("Back")
-                ->build();
-            $submenu->open();
+                ->setExitButtonText("Exit Plugin Tools Setup");
         });
 
         $menu->addStaticItem('')
