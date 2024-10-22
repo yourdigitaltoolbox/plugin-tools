@@ -207,105 +207,67 @@ class SetupMenu
             $menu->addRadioItem(ucFirst($method), $push_strategy_cb);
         };
 
-        $menu->addSplitItem(function (SplitItemBuilder $b) {
+        $menu->addItem('Set S3 Information', function (CliMenu $menu) {
 
             $s3 = new \YDTBWP\Utils\AwsS3();
             $s3->loadS3DataFromOptions();
             $data = $s3->getData();
 
-            $b->setGutter(5)
-                ->addItem('Set S3 Information', function (CliMenu $menu) use ($s3) {
+            $createS3Prompt = function (string $promptText, string $validationFailedText, string $configKey, string $staticItemPrefix) use ($s3) {
+                return function (CliMenu $menu) use ($promptText, $validationFailedText, $configKey, $staticItemPrefix, $s3) {
+                    $result = $menu->askText()
+                        ->setPromptText($promptText)
+                        ->setPlaceholderText('')
+                        ->setValidationFailedText($validationFailedText)
+                        ->ask();
 
-                    $data = $s3->getData();
+                    if ($result->fetch() === '') {
+                        return;
+                    }
+                    $config = [$configKey => $result->fetch()];
+                    $s3->updateS3Config($config);
 
-                    $s3_key_prompt = function (CliMenu $menu) use ($s3) {
-                        $result = $menu->askText()
-                            ->setPromptText('Enter S3 Key')
-                            ->setPlaceholderText('')
-                            ->setValidationFailedText('Please Enter A Valid Key')
-                            ->ask();
-
-                        if ($result->fetch() === '') {
-                            return;
+                    foreach ($menu->getItems() as $item) {
+                        if ($item instanceof \PhpSchool\CliMenu\MenuItem\StaticItem) {
+                            foreach ($item->getItems() as $subItem) {
+                                if ($subItem instanceof \PhpSchool\CliMenu\MenuItem\StaticItem  && strpos($subItem->getText(), $staticItemPrefix) === 0) {
+                                    $subItem->setText($staticItemPrefix . $config[$configKey]);
+                                }
+                            }
                         }
-                        $config = ['keyID' => $result->fetch()];
-                        $s3->updateS3Config($config);
-                        $menu->redraw();
-                    };
+                    }
+                    $menu->redraw();
+                };
+            };
 
-                    $s3_secret_prompt = function (CliMenu $menu) use ($s3) {
-                        $result = $menu->askText()
-                            ->setPromptText('Enter S3 Secret')
-                            ->setPlaceholderText('')
-                            ->setValidationFailedText('Please Enter A Valid Secret')
-                            ->ask();
+            $s3_key_prompt = $createS3Prompt('Enter S3 Key', 'Please Enter A Valid Key', 'keyID', 'Current S3 Key: ');
+            $s3_secret_prompt = $createS3Prompt('Enter S3 Secret', 'Please Enter A Valid Secret', 'secretKey', 'Current S3 Secret: ');
+            $s3_bucket_prompt = $createS3Prompt('Enter S3 Bucket', 'Please Enter A Valid Bucket', 'bucket', 'Current S3 Bucket: ');
+            $s3_region_prompt = $createS3Prompt('Enter S3 Region', 'Please Enter A Valid Region', 'region', 'Current S3 Region: ');
 
-                        if ($result->fetch() === '') {
-                            return;
-                        }
-                        $config = ['secretKey' => $result->fetch()];
-                        $s3->updateS3Config($config);
-                        $menu->redraw();
-                    };
+            $submenu = (new CliMenuBuilder)
+                ->setTitle('S3 Information');
 
-                    $s3_bucket_prompt = function (CliMenu $menu) use ($s3) {
-                        $result = $menu->askText()
-                            ->setPromptText('Enter S3 Bucket')
-                            ->setPlaceholderText('')
-                            ->setValidationFailedText('Please Enter A Valid Bucket')
-                            ->ask();
+            $s3_prompts = [
+                'keyID' => ['prompt' => $s3_key_prompt, 'label' => 'S3 Key', 'data' => $data['accessKeyID']],
+                'secretKey' => ['prompt' => $s3_secret_prompt, 'label' => 'S3 Secret', 'data' => $data['secretAccessKey']],
+                'bucket' => ['prompt' => $s3_bucket_prompt, 'label' => 'S3 Bucket', 'data' => $data['bucketName']],
+                'region' => ['prompt' => $s3_region_prompt, 'label' => 'S3 Region', 'data' => $data['region']],
+            ];
 
-                        if ($result->fetch() === '') {
-                            return;
-                        }
-                        $config = ['bucket' => $result->fetch()];
-                        $s3->updateS3Config($config);
-                        $menu->redraw();
-                    };
-
-                    $s3_region_prompt = function (CliMenu $menu) use ($s3) {
-                        $result = $menu->askText()
-                            ->setPromptText('Enter S3 Region')
-                            ->setPlaceholderText('')
-                            ->setValidationFailedText('Please Enter A Valid Region')
-                            ->ask();
-
-                        if ($result->fetch() === '') {
-                            return;
-                        }
-                        $config = ['region' => $result->fetch()];
-                        $s3->updateS3Config($config);
-                        $menu->redraw();
-                    };
-
-                    $submenu = (new CliMenuBuilder)
-                        ->setTitle('S3 Information')
-                        ->disableDefaultItems()
-                        ->addSplitItem(function (SplitItemBuilder $b) use ($data, $s3_key_prompt) {
-                            $b->setGutter(5)
-                                ->addStaticItem('Current S3 Key: ' . $data['accessKeyID'])
-                                ->addItem('Set S3 Key', $s3_key_prompt);
-                        })
-                        ->addSplitItem(function (SplitItemBuilder $b) use ($data, $s3_secret_prompt) {
-                            $b->setGutter(5)
-                                ->addStaticItem('Current S3 Secret: ' . $data['secretAccessKey'])
-                                ->addItem('Set S3 Secret', $s3_secret_prompt);
-                        })
-                        ->addSplitItem(function (SplitItemBuilder $b) use ($data, $s3_bucket_prompt) {
-                            $b->setGutter(5)
-                                ->addStaticItem('Current S3 Bucket: ' . $data['bucketName'])
-                                ->addItem('Set S3 Bucket', $s3_bucket_prompt);
-                        })
-                        ->addSplitItem(function (SplitItemBuilder $b) use ($data, $s3_region_prompt) {
-                            $b->setGutter(5)
-                                ->addStaticItem('Current S3 Region: ' . $data['region'])
-                                ->addItem('Set S3 Region', $s3_region_prompt);
-                        })
-                        ->addItem('Back', new GoBackAction)
-                        ->build();
-
-                    $submenu->open();
+            foreach ($s3_prompts as $configKey => $config) {
+                $submenu->addSplitItem(function (SplitItemBuilder $b) use ($config) {
+                    $b->setGutter(5)
+                        ->addStaticItem('Current ' . $config['label'] . ': ' . $config['data'])
+                        ->addItem('Set ' . $config['label'], $config['prompt']);
                 });
+            }
+
+            $submenu->addStaticItem('')
+                ->addLineBreak('-')
+                ->setExitButtonText("Back")
+                ->build();
+            $submenu->open();
         });
 
         $menu->addStaticItem('')
