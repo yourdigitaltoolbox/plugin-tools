@@ -12,26 +12,38 @@ class ProxyUpdateStrategy implements UpdateStrategyInterface
 
     public function __construct($type)
     {
+        // local or remote
         $this->type = $type;
     }
 
     public function update($items)
     {
+
         $upload_dir = wp_upload_dir();
         $temp_dir = $upload_dir['basedir'] . '/ydtbwp';
         $temp_url = $upload_dir['baseurl'] . '/ydtbwp';
 
         foreach ($items as &$item) {
 
+            var_dump($item);
+
             $outputPath = $temp_dir . "/" . $item["slug"] . "." . $item["version"] . ".zip";
             $outputURL = $temp_url . "/" . $item["slug"] . "." . $item["version"] . ".zip";
 
-            echo "Downloading {$item["name"]}...\n";
-            echo "Output path: {$outputPath}\n";
-            echo "Output URL: {$outputURL}\n";
+            // Check if the item is already located locally
+            $parsedUrl = parse_url($item["update_url"]);
+            $hostname = parse_url(get_bloginfo('url'));
 
-            // Download the file
-            Requests::downloadFile($item["update_url"], $outputPath);
+            if ($parsedUrl["host"] == $hostname["host"]) {
+                echo "{$item["name"]} is already located locally. Skipping download...\n";
+            } else {
+                echo "Downloading {$item["name"]}...\n";
+                echo "Output path: {$outputPath}\n";
+                echo "Output URL: {$outputURL}\n";
+
+                // Download the file
+                Requests::downloadFile($item["update_url"], $outputPath);
+            }
 
             // Update the item data with the output URL
             $item["update_url"] = $outputURL;
@@ -47,7 +59,7 @@ class ProxyUpdateStrategy implements UpdateStrategyInterface
                 unlink($outputPath);
             } else {
                 // create a one off wordpress event for 10 minutes to delete the file
-                wp_schedule_single_event(time() + 600, 'ydtbwp_delete_temp_file', array($outputPath));
+                wp_schedule_single_event(time() + 600, "ydtbwp_delete_temp_{$item["type"]}_file", array($outputPath));
             }
         }
 

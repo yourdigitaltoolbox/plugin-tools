@@ -33,31 +33,22 @@ class MultiItemMenu
 
     public function build()
     {
-        $updateTracked = function (CliMenu $menu) {
+
+        $updateTracked = function (CliMenu $menu, $slug) {
             $item = $menu->getSelectedItem();
             $selection = $item->getText();
 
-            $item_slug = null;
-            foreach ($this->all_items as $key => $item_data) {
-                if ($item_data['Name'] === $selection) {
-                    $item_slug = $this->type === 'theme' ? $key : explode("/", $key)[0];
-                    break;
-                }
-            }
-
             if ($item->getChecked()) {
 
-                if (isset($this->tracked->{$item_slug})) {
-                    $vendor = $this->tracked->{$item_slug};
+                if (isset($this->tracked->{$slug})) {
+                    $vendor = $this->tracked->{$slug};
                 }
 
-                if (isset($this->remote_items->$item_slug)) {
-                    $vendor = $this->remote_items->$item_slug->vendor;
-                    echo "Vendor Set Remotely: " . $vendor;
+                if (isset($this->remote_items->{$slug})) {
+                    $vendor = $this->remote_items->{$slug}->vendor;
                 }
 
                 if (!isset($vendor)) {
-                    echo ucfirst($this->type) . " not found in remote list, please enter the vendor name\n";
                     $result = $menu->askText()
                         ->setPromptText('Enter The Vendor Name')
                         ->setPlaceholderText('')
@@ -67,9 +58,33 @@ class MultiItemMenu
                         })
                         ->ask();
                     $vendor = $result->fetch();
+
                 }
 
-                $this->selectedItems[$item_slug] = $vendor;
+                if (empty($vendor)) {
+                    $menu->flash("Vendor name cannot be empty");
+                    return;
+                }
+
+                if (!isset($this->remote_items->{$slug})) {
+                    $shouldPush = $menu->cancellableConfirm('Do you want to push local files now?')
+                        ->display('Yes', 'No');
+
+                    if ($shouldPush) {
+                        $pushItem = new \stdClass();
+                        $pushItem->name = $selection;
+                        $pushItem->vendor = $vendor;
+                        $pushItem->type = $this->type;
+                        $pushItem->slug = $slug;
+
+                        do_action("ydtbwp_push_local_{$this->type}", $pushItem);
+                        sleep(5);
+                    } else {
+                        $menu->flash('Local files will not be pushed');
+                    }
+                }
+
+                $this->selectedItems[$slug] = $vendor;
 
                 // update the menu item with the vendor name
                 $menuItems = $menu->getItems();
@@ -87,7 +102,7 @@ class MultiItemMenu
                 $menu->redraw();
 
             } else {
-                unset($this->selectedItems[$item_slug]);
+                unset($this->selectedItems[$slug]);
             }
         };
 
@@ -125,12 +140,13 @@ class MultiItemMenu
 
             $name = $all_slugs[$slug];
 
-            $menu->addSplitItem(function (SplitItemBuilder $b) use ($name, $updateTracked, $vendorName) {
+            $menu->addSplitItem(function (SplitItemBuilder $b) use ($name, $slug, $updateTracked, $pushItem, $vendorName) {
                 $b->setGutter(5)
-                    ->addCheckboxItem($name, $updateTracked)
+                    ->addCheckboxItem($name, function (CliMenu $menu) use ($slug, $updateTracked) {
+                        $updateTracked($menu, $slug);
+                    })
                     ->addStaticItem($vendorName);
             });
-
         }
 
         $menu

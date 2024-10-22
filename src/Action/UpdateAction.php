@@ -21,18 +21,10 @@ class UpdateAction implements Provider
     public function register()
     {
         add_action("ydtbwp_update_{$this->type}s", [$this, "update_items"]);
-        add_action("ydtbwp_push_single_{$this->type}", [$this, "push_single_item"]);
-
-        add_action('ydtbwp_delete_temp_file', function ($file) {
+        add_action("ydtbwp_push_local_{$this->type}", [$this, "push_local_item"]);
+        add_action("ydtbwp_delete_temp_{$this->type}_file", function ($file) {
             unlink($file);
         });
-    }
-
-    private function out(string $arg1): void
-    {
-        if (!$this->quiet) {
-            echo $arg1;
-        }
     }
 
     public function update_items($quiet = true)
@@ -43,9 +35,6 @@ class UpdateAction implements Provider
         $all_items = $this->type === 'theme' ? wp_get_themes() : get_plugins();
         $upgrade_items = array();
         $current = get_site_transient("update_{$this->type}s");
-
-        // echo "Checking for updates for {$this->type}s... \n";
-        // var_dump($current);
 
         foreach ((array) $all_items as $item_file => $item_data) {
             if (isset($current->response[$item_file])) {
@@ -128,8 +117,6 @@ class UpdateAction implements Provider
             return;
         }
 
-        die();
-
         $strategyName = get_option('ydtbwp_update_strategy', 'remote');
         $updateStrategy = $this->getUpdateStrategy($strategyName);
         $updateStrategy->update($upgrade_items);
@@ -149,41 +136,90 @@ class UpdateAction implements Provider
         }
     }
 
-    public function push_single_item($item)
+/**
+ * Push a single item to the remote repo. Use this to push a new plugin or theme to the remote repo.
+ * @param array $item
+ */
+
+    public function push_local_item($pushItem)
     {
-        $out("----- Pushing single {$this->type} ----- \n");
+        $strategyName = get_option('ydtbwp_update_strategy', 'remote');
+
+        if ($strategyName === 'simple') {
+            $out("Simple strategy does not support pushing local items. Please setup a different strategy. \n");
+            return;
+        }
+
+        echo "----- Pushing local {$this->type} {$pushItem->name} ----- \n";
+
+        $all_packages = $this->type === 'theme' ? wp_get_themes() : get_plugins();
+
+        $item = null;
+        foreach ($all_packages as $key => $package) {
+            $package_slug = explode('/', $key)[0];
+            if ($package_slug === $pushItem->slug) {
+                $item = [
+                    "Name" => $package['Name'],
+                    "Version" => $package['Version'],
+                    "slug" => $pushItem->slug,
+                    "file_path" => $key,
+                    "vendor" => $pushItem->vendor,
+                    "type" => $this->type,
+                ];
+                break;
+            }
+        }
+
+        if (!isset($item)) {
+            echo ("{$this->type} {$pushItem->slug} not found. \n");
+            throw new \Exception("{$this->type} {$pushItem->slug} not found.");
+        }
+
         $upload_dir = wp_upload_dir();
+
         $temp_dir = $upload_dir['basedir'] . '/ydtbwp';
         $temp_url = $upload_dir['baseurl'] . '/ydtbwp';
+
         if (!file_exists($temp_dir)) {
             mkdir($temp_dir, 0777, true);
         }
-        $targetDir = $this->type === 'theme' ? WP_theme_DIR . "/" . $item['slug'] : WP_PLUGIN_DIR . "/" . $item['slug'];
+
+        if ($this->type === 'theme') {
+            $theme = wp_get_theme($item['slug']);
+            $targetDir = $theme->get_stylesheet_directory();
+        } else {
+            $targetDir = WP_PLUGIN_DIR . "/" . $item['slug'];
+        }
+
         $outputPath = $temp_dir . "/" . $item['slug'] . ".zip";
+
         if (file_exists($outputPath)) {
             unlink($outputPath);
         }
+
         $zipPath = (new ZipDirectory($targetDir, $outputPath, $item['slug']))->make();
         $newZipPath = $temp_dir . "/" . $item['slug'] . "." . $item['Version'] . ".zip";
+
         rename($zipPath, $newZipPath);
+
         $zipPath = $newZipPath;
         $outputURL = $temp_url . "/" . $item['slug'] . "." . $item['Version'] . ".zip";
-        $out("{$item['Name']} - {$item['Version']} has been zipped to: \n");
-        $out($outputURL . "\n");
 
-        $body = new \stdClass();
-        $body->ref = "main";
-        $body->inputs = new \stdClass();
-        $body->inputs->json = \json_encode([
-            [
-                "{$this->type}_name" => $item['Name'],
-                "{$this->type}_version" => $item['Version'],
-                "{$this->type}_update_version" => $item['Version'],
-                "{$this->type}_update_url" => $outputURL,
-                "{$this->type}_slug" => $item['slug'],
-                "{$this->type}_file" => $item['file_path'],
-            ],
-        ]);
-        Requests::updateRequest(json_encode($body));
+        echo ("{$item['Name']} - {$item['Version']} has been zipped to: \n");
+        echo ($outputURL . "\n");
+
+        echo "Uploading {$item['Name']}...\n";
+
+        $updateStrategy = $this->getUpdateStrategy($strategyName);
+        $updateStrategy->update([[
+            "name" => $item['Name'],
+            "version" => $item['Version'],
+            "update_version" => $item['Version'],
+            "update_url" => $outputURL,
+            "slug" => $item['slug'],
+            "file" => $item['file_path'],
+            "type" => $this->type,
+            "vendor" => $item['vendor'],
+        ]]);
     }
 }

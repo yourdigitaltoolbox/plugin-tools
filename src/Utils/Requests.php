@@ -116,17 +116,9 @@ class Requests
         }
 
         echo " The request was successful\n Check Github for the action run status\n";
-        //https://github.com/ydtb-wp/ydtb-wp.github.io/actions/workflows/report-update-debug.yml
-        //https://api.github.com/repos/ydtb-wp/ydtb-wp.github.io/actions/workflows/report-update-list.yml/dispatches
 
-        function transformApiUrlToWebUrl($apiUrl)
-        {
-            $webUrl = str_replace('api.github.com/repos', 'github.com', $apiUrl);
-            $webUrl = str_replace('/dispatches', '', $webUrl);
-            return $webUrl;
-        }
-
-        $webUrl = transformApiUrlToWebUrl($update_workflow_url);
+        $webUrl = str_replace('api.github.com/repos', 'github.com', $update_workflow_url);
+        $webUrl = str_replace('/dispatches', '', $webUrl);
 
         echo "You can view the status of the action run here: " . $webUrl . "\n";
 
