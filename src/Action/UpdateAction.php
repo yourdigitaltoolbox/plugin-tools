@@ -191,11 +191,11 @@ class UpdateAction implements Provider
 
         $outputPath = $temp_dir . "/" . $item['slug'] . ".zip";
 
-        if (file_exists(echoputPath)) {
-            unlink(echoputPath);
+        if (file_exists($outputPath)) {
+            unlink($outputPath);
         }
 
-        $zipPath = (new ZipDirectory($targetDir, echoputPath, $item['slug']))->make();
+        $zipPath = (new ZipDirectory($targetDir, $outputPath, $item['slug']))->make();
         $newZipPath = $temp_dir . "/" . $item['slug'] . "." . $item['Version'] . ".zip";
 
         rename($zipPath, $newZipPath);
