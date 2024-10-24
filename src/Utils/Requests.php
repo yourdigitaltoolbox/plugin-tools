@@ -10,7 +10,7 @@ class Requests
             throw new \Exception('Invalid type provided. Only "plugin" or "theme" are allowed.');
         }
 
-        $fetch_host = get_option('ydtbwp_fetch_host');
+        $fetch_host = get_option('ydtbwp_fetch_host', defined('YDTBWP_FETCH_URL') ? YDTBWP_FETCH_URL : '');
 
         if (!$fetch_host) {
             echo ('No fetch host found, Please use `wp pt setDataFetchURL <host>` to set the fetch host');
@@ -45,7 +45,7 @@ class Requests
         echo "\n";
 
         if ($type == 'list') {
-            $update_workflow_url = get_option('ydtbwp_workflow_url');
+            $update_workflow_url = get_option('ydtbwp_workflow_url', defined('YDTBWP_WORKFLOW_URL') ? YDTBWP_WORKFLOW_URL : '');
             if (!$update_workflow_url) {
                 echo ('No plugin host found, Please use `wp pt setUpdateWorkflowURL <host>` to set the plugin host');
                 return;
@@ -56,31 +56,22 @@ class Requests
                 return;
             }
         }
-        if ($type == 'single') {
-
-            $update_workflow_url = get_option('ydtbwp_workflow_url_single');
-
-            if (!$update_workflow_url) {
-                echo ('No plugin host found, Please use `wp pt setSingleUpdateWorkflowURL <host>` to set the plugin host');
-                return;
-            }
-
-            if (!$update_workflow_url || !is_string($update_workflow_url) || !preg_match('/^http(s)?:\/\/[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(\/.*)?$/i', $update_workflow_url)) {
-                echo ('Invalid URL provided for plugin host. Please use `wp pt setSingleUpdateWorkflowURL <host>` to set the plugin host correctly');
-                return;
-            }
-        }
 
         echo "Post Request against " . $update_workflow_url . "\n\n";
 
         $data_encryption = new Encryption();
         $encrypted_api_key = get_option('ydtbwp_github_token');
-        if (!$encrypted_api_key) {
-            echo ('No API key found, Please use `wp pt setToken <token>` to set the API key');
-            return;
-        }
 
-        $api_key = $data_encryption->decrypt($encrypted_api_key);
+        if (!$encrypted_api_key) {
+            if (defined('YDTBWP_GITHUB_TOKEN') && YDTBWP_GITHUB_TOKEN) {
+                $api_key = YDTBWP_GITHUB_TOKEN;
+            } else {
+                echo ('No API key found, Please use `wp pt setToken <token>` to set the API key');
+                return;
+            }
+        } else {
+            $api_key = $data_encryption->decrypt($encrypted_api_key);
+        }
 
         if (!$api_key) {
             echo ('Invalid API key found, Please use `wp pt setToken <token>` to set the API key correctly');

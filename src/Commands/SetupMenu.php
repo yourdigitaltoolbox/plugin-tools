@@ -10,17 +10,37 @@ use YDTBWP\Utils\Encryption;
 
 class SetupMenu
 {
-
     function __construct()
     {
+        // $data_encryption = new Encryption();
+
+        // $this->github_token = get_option('ydtbwp_github_token', defined('YDTBWP_GITHUB_TOKEN') ? YDTBWP_GITHUB_TOKEN : '');
+
         $data_encryption = new Encryption();
-        $api_token = get_option('ydtbwp_github_token', '');
-        $this->github_token = $api_token ? $data_encryption->decrypt($api_token) : '';
-        $this->update_workflow_url = get_option('ydtbwp_workflow_url', '');
-        $this->fetchURL = get_option('ydtbwp_fetch_host', '');
+        $encrypted_api_key = get_option('ydtbwp_github_token');
+
+        if (!$encrypted_api_key) {
+            if (defined('YDTBWP_GITHUB_TOKEN') && YDTBWP_GITHUB_TOKEN) {
+                $api_key = YDTBWP_GITHUB_TOKEN;
+            } else {
+                echo ('No API key found, Please use `wp pt setToken <token>` to set the API key');
+                return;
+            }
+        } else {
+            $api_key = $data_encryption->decrypt($encrypted_api_key);
+        }
+
+        if (!$api_key) {
+            echo ('Invalid API key found, Please use `wp pt setToken <token>` to set the API key correctly');
+            return;
+        }
+
+        $this->github_token = $api_key;
+
+        $this->update_workflow_url = get_option('ydtbwp_workflow_url', defined('YDTBWP_WORKFLOW_URL') ? YDTBWP_WORKFLOW_URL : '');
+        $this->fetchURL = get_option('ydtbwp_fetch_host', defined('YDTBWP_FETCH_URL') ? YDTBWP_FETCH_URL : '');
         $this->automatic_updates = get_option('ydtbwp_plugin_auto_update', false);
         $this->push_strategy = get_option('ydtbwp_update_strategy', 'remote');
-
     }
 
     private $github_token = '';

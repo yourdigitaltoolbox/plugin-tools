@@ -129,13 +129,18 @@ class AwsS3
     public function loadS3DataFromOptions()
     {
         $data_encryption = new Encryption();
-        $stored_data = get_option('ydtbwp_s3_data', true);
+        $stored_data = get_option('ydtbwp_s3_data');
         if ($stored_data) {
             $this->bucketName = $stored_data['bucketName'] == "" ? $this->bucketName : $stored_data['bucketName'];
             $this->region = $stored_data['region'] == "" ? $this->region : $stored_data['region'];
             $this->version = $stored_data['version'] == "" ? $this->version : $stored_data['version'];
             $this->accessKeyID = isset($stored_data['credentials']['accessKeyID']) ? $data_encryption->decrypt($stored_data['credentials']['accessKeyID']) : $this->accessKeyID;
             $this->secretAccessKey = isset($stored_data['credentials']['secretAccessKey']) ? $data_encryption->decrypt($stored_data['credentials']['secretAccessKey']) : $this->secretAccessKey;
+        } else {
+            $this->bucketName = defined('S3_UPLOADS_BUCKET') && S3_UPLOADS_BUCKET ? S3_UPLOADS_BUCKET : $this->bucketName;
+            $this->region = defined('S3_UPLOADS_REGION') && S3_UPLOADS_REGION ? S3_UPLOADS_REGION : $this->region;
+            $this->accessKeyID = defined('S3_UPLOADS_KEY') && S3_UPLOADS_KEY ? S3_UPLOADS_KEY : $this->accessKeyID;
+            $this->secretAccessKey = defined('S3_UPLOADS_SECRET') && S3_UPLOADS_SECRET ? S3_UPLOADS_SECRET : $this->secretAccessKey;
         }
     }
 

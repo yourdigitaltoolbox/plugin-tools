@@ -134,6 +134,7 @@ class MultiItemMenu
             if (isset($this->remote_items->$slug)) {
                 $vendorName = $this->remote_items->$slug->vendor;
             }
+
             if (!isset($vendorName)) {
                 $vendorName = "** Set Vendor **";
             }
