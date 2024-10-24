@@ -14,7 +14,9 @@ class UpdateAction implements Provider
     private $quiet = true;
 
     public function __construct($type)
-    {}
+    {
+        $this->type = $type;
+    }
 
     public function register()
     {
