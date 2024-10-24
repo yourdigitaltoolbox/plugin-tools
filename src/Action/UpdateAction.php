@@ -14,9 +14,7 @@ class UpdateAction implements Provider
     private $quiet = true;
 
     public function __construct($type)
-    {
-        $this->type = $type;
-    }
+    {}
 
     public function register()
     {
@@ -27,10 +25,8 @@ class UpdateAction implements Provider
         });
     }
 
-    public function update_items($quiet = true)
+    public function update_items()
     {
-        $out = [$this, 'out'];
-        $this->quiet = $quiet;
         $checked_items = json_decode(get_option("ydtbwp_push_{$this->type}s", []));
         $all_items = $this->type === 'theme' ? wp_get_themes() : get_plugins();
         $upgrade_items = array();
@@ -60,14 +56,14 @@ class UpdateAction implements Provider
             }
         }
 
-        $out("\n");
-        $out("This Site has | " . count($upgrade_items) . " | {$this->type}s with pending updates... ");
-        $out("\n\n");
+        echo ("\n");
+        echo ("This Site has | " . count($upgrade_items) . " | {$this->type}s with pending updates... ");
+        echo ("\n\n");
 
         foreach ($upgrade_items as $key => $item) {
             $slug = $item["slug"];
             if (!isset($checked_items->$slug)) {
-                $out("\t-- {$this->type} {$item["name"]} is not whitelisted, removing from possible push list... \n");
+                echo ("\t-- {$this->type} {$item["name"]} is not whitelisted, removing from possible push list... \n");
                 unset($upgrade_items[$key]);
                 continue;
             }
@@ -75,11 +71,11 @@ class UpdateAction implements Provider
         }
 
         if (empty($upgrade_items)) {
-            $out("No updates for whitelisted {$this->type}s Available to push \n");
+            echo ("No updates for whitelisted {$this->type}s Available to push \n");
             return;
         }
 
-        $out("\nThis Site has | " . count($upgrade_items) . " | {$this->type}s with pending updates that are whitelisted to be pushed to the remote repo.  \n\n");
+        echo ("\nThis Site has | " . count($upgrade_items) . " | {$this->type}s with pending updates that are whitelisted to be pushed to the remote repo.  \n\n");
 
         $remoteItems = Requests::getRemoteData("{$this->type}s");
         $remoteItemArray = [];
@@ -94,16 +90,16 @@ class UpdateAction implements Provider
 
             if (isset($remoteItemArray[$item["slug"]]) && in_array($item["update_version"], $remoteItemArray[$item["slug"]])) {
                 unset($upgrade_items[$key]);
-                $out(" [Skipping... (Already Tracked Version)]\n");
+                echo (" [Skipping... (Already Tracked Version)]\n");
 
                 if ($automatic_updates) {
                     $skin = new \Automatic_Upgrader_Skin();
                     $upgrader = $this->type === 'theme' ? new \Theme_Upgrader($skin) : new \Plugin_Upgrader($skin);
                     $result = $upgrader->upgrade($item["file"]);
                     if ($result) {
-                        $out(" \t   >> Local {$this->type} Updated Successfully \n");
+                        echo (" \t   >> Local {$this->type} Updated Successfully \n");
                     } else {
-                        $out("\t   >> Local {$this->type} Update Failed \n");
+                        echo ("\t   >> Local {$this->type} Update Failed \n");
                     }
                     activate_plugin($item["file"]);
                 }
@@ -113,7 +109,7 @@ class UpdateAction implements Provider
         }
 
         if (empty($upgrade_items)) {
-            $out("\nNo updates for whitelisted {$this->type}s Available to push \n\n");
+            echo ("\nNo updates for whitelisted {$this->type}s Available to push \n\n");
             return;
         }
 
@@ -146,7 +142,7 @@ class UpdateAction implements Provider
         $strategyName = get_option('ydtbwp_update_strategy', 'remote');
 
         if ($strategyName === 'simple') {
-            $out("Simple strategy does not support pushing local items. Please setup a different strategy. \n");
+            echo ("Simple strategy does not support pushing local items. Please setup a different strategy. \n");
             return;
         }
 
@@ -193,11 +189,11 @@ class UpdateAction implements Provider
 
         $outputPath = $temp_dir . "/" . $item['slug'] . ".zip";
 
-        if (file_exists($outputPath)) {
-            unlink($outputPath);
+        if (file_exists(echoputPath)) {
+            unlink(echoputPath);
         }
 
-        $zipPath = (new ZipDirectory($targetDir, $outputPath, $item['slug']))->make();
+        $zipPath = (new ZipDirectory($targetDir, echoputPath, $item['slug']))->make();
         $newZipPath = $temp_dir . "/" . $item['slug'] . "." . $item['Version'] . ".zip";
 
         rename($zipPath, $newZipPath);
