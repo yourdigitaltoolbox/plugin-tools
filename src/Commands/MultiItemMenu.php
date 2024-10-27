@@ -141,7 +141,7 @@ class MultiItemMenu
 
             $name = $all_slugs[$slug];
 
-            $menu->addSplitItem(function (SplitItemBuilder $b) use ($name, $slug, $updateTracked, $pushItem, $vendorName) {
+            $menu->addSplitItem(function (SplitItemBuilder $b) use ($name, $slug, $updateTracked, $vendorName) {
                 $b->setGutter(5)
                     ->addCheckboxItem($name, function (CliMenu $menu) use ($slug, $updateTracked) {
                         $updateTracked($menu, $slug);
