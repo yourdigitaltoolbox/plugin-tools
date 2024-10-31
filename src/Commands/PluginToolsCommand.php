@@ -96,7 +96,7 @@ class PluginToolsCommand extends \WP_CLI_Command
         }
     }
 
-    public function chooseTrackedItems($args, $assoc_args)
+    public function choose($args, $assoc_args)
     {
         $type = $args[0];
 

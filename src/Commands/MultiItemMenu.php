@@ -17,6 +17,7 @@ class MultiItemMenu
     private $selectedItems = [];
     private $all_items = [];
     private $tracked;
+    private $all_slugs = [];
 
     public function __construct($type)
     {
@@ -24,6 +25,15 @@ class MultiItemMenu
         $this->remote_items = Requests::getRemoteData($type . 's');
         $this->all_items = $this->type === 'theme' ? wp_get_themes() : get_plugins();
         $this->tracked = json_decode(get_option('ydtbwp_push_' . $this->type . 's', json_encode([])));
+        $this->setAllSlugs();
+    }
+
+    private function setAllSlugs()
+    {
+        foreach ($this->all_items as $key => $item) {
+            $slug = explode("/", $key)[0];
+            $this->all_slugs[$slug] = $item['Name'];
+        }
     }
 
     public function getSelectedItems()
@@ -33,7 +43,6 @@ class MultiItemMenu
 
     public function build()
     {
-
         $updateTracked = function (CliMenu $menu, $slug) {
             $item = $menu->getSelectedItem();
             $selection = $item->getText();
@@ -104,13 +113,8 @@ class MultiItemMenu
             } else {
                 unset($this->selectedItems[$slug]);
             }
+            update_option('ydtbwp_push_' . $this->type . 's', json_encode($this->selectedItems));
         };
-
-        $all_slugs = [];
-        foreach ($this->all_items as $key => $item) {
-            $slug = explode("/", $key)[0];
-            $all_slugs[$slug] = $item['Name'];
-        }
 
         $menu = (new CliMenuBuilder)
             ->setTitle('Choose ' . ucfirst($this->type) . 's To Push')
@@ -121,9 +125,7 @@ class MultiItemMenu
             ->addStaticItem('Check the ' . $this->type . 's that should be pushed to the tracking system')
             ->addStaticItem(' ');
 
-        for ($i = 0; $i < count($all_slugs); $i++) {
-
-            $slug = array_keys($all_slugs)[$i];
+        foreach ($this->all_slugs as $slug => $name) {
 
             $vendorName = null;
 
@@ -139,8 +141,6 @@ class MultiItemMenu
                 $vendorName = "** Set Vendor **";
             }
 
-            $name = $all_slugs[$slug];
-
             $menu->addSplitItem(function (SplitItemBuilder $b) use ($name, $slug, $updateTracked, $vendorName) {
                 $b->setGutter(5)
                     ->addCheckboxItem($name, function (CliMenu $menu) use ($slug, $updateTracked) {
@@ -155,25 +155,28 @@ class MultiItemMenu
             ->addLineBreak('-');
         $menu = $menu->build();
 
-        function getKeyByValue(array $array, $value)
-        {
+        $this->updateMenuWithTrackedItems($menu, $this->all_slugs);
+
+        $menu->open();
+    }
+
+    private function updateMenuWithTrackedItems(CliMenu $menu)
+    {
+        $getKeyByValue = function (array $array, $value) {
             foreach ($array as $key => $val) {
                 if ($val === $value) {
                     return $key;
                 }
             }
             return null;
-        }
-
-        $key = getKeyByValue($all_slugs, $name);
+        };
 
         foreach ($menu->getItems() as $item) {
-
             if ($item instanceof SplitItem) {
                 $splitItems = $item->getItems();
                 $firstItem = $splitItems[0];
                 $itemName = $firstItem->getText();
-                $itemSlug = getKeyByValue($all_slugs, $itemName);
+                $itemSlug = $getKeyByValue($this->all_slugs, $itemName);
 
                 if ($itemSlug && isset($this->tracked->{$itemSlug})) {
                     $firstItem->setChecked(true);
@@ -181,15 +184,12 @@ class MultiItemMenu
                 }
             } elseif ($item instanceof CheckboxItem) {
                 $itemName = $item->getText();
-                $itemSlug = getKeyByValue($all_slugs, $itemName);
+                $itemSlug = $getKeyByValue($this->all_slugs, $itemName);
                 if ($itemSlug && isset($this->tracked->{$itemSlug})) {
                     $item->setChecked(true);
                     $this->selectedItems[$itemSlug] = $this->tracked->{$itemSlug};
-
                 }
             }
         }
-
-        $menu->open();
     }
 }
