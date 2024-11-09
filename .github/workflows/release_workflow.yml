@@ -103,6 +103,7 @@ jobs:
           rm -rf release/.github
           rm -rf release/.env
           rm -rf release/node_modules
+          rm -rf release/.gitignore
 
       - name: Rename Folder
         run: |
