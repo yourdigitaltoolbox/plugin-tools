@@ -4,7 +4,11 @@
         "commitMessage": "chore: release v${version}",
         "tag": true,
         "push": true,
-        "commit": true
+        "commit": true,
+        "changelog": "npx auto-changelog --stdout --commit-limit 10 -u --template https://raw.githubusercontent.com/release-it/release-it/main/templates/changelog-compact.hbs"
+    },
+    "hooks": {
+        "after:bump": "npx auto-changelog -p --commit-limit 10"
     },
     "github": {
         "release": false
