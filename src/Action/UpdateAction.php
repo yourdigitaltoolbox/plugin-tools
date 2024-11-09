@@ -29,7 +29,7 @@ class UpdateAction implements Provider
 
     public function update_items()
     {
-        $checked_items = json_decode(get_option("ydtbwp_push_{$this->type}s", []));
+        $checked_items = json_decode(get_option("ydtbwp_push_{$this->type}s", "[]"));
         $all_items = $this->type === 'theme' ? wp_get_themes() : get_plugins();
         $upgrade_items = array();
         $current = get_site_transient("update_{$this->type}s");
@@ -134,10 +134,10 @@ class UpdateAction implements Provider
         }
     }
 
-/**
- * Push a single item to the remote repo. Use this to push a new plugin or theme to the remote repo.
- * @param array $item
- */
+    /**
+     * Push a single item to the remote repo. Use this to push a new plugin or theme to the remote repo.
+     * @param array $item
+     */
 
     public function push_local_item($pushItem)
     {
@@ -209,15 +209,17 @@ class UpdateAction implements Provider
         echo "Uploading {$item['Name']}...\n";
 
         $updateStrategy = $this->getUpdateStrategy($strategyName);
-        $updateStrategy->update([[
-            "name" => $item['Name'],
-            "version" => $item['Version'],
-            "update_version" => $item['Version'],
-            "update_url" => $outputURL,
-            "slug" => $item['slug'],
-            "file" => $item['file_path'],
-            "type" => $this->type,
-            "vendor" => $item['vendor'],
-        ]]);
+        $updateStrategy->update([
+            [
+                "name" => $item['Name'],
+                "version" => $item['Version'],
+                "update_version" => $item['Version'],
+                "update_url" => $outputURL,
+                "slug" => $item['slug'],
+                "file" => $item['file_path'],
+                "type" => $this->type,
+                "vendor" => $item['vendor'],
+            ]
+        ]);
     }
 }

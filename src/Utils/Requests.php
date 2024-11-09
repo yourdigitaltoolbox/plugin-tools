@@ -121,6 +121,12 @@ class Requests
         echo "Downloading file from {$url} to {$path}...\n";
 
         $fileContents = file_get_contents($url);
+
+        $directory = dirname($path);
+        if (!is_dir($directory)) {
+            mkdir($directory, 0777, true);
+        }
+
         file_put_contents($path, $fileContents);
     }
 }
