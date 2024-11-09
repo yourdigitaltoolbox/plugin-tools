@@ -3,7 +3,7 @@
  * Plugin Name:     YDTB Plugin Tools
  * Plugin URI:      https://github.com/johnkraczek/ydtb-plugin-tools
  * Description:     Tools for tracking paid plugin updates.
- * Version:         0.0.13
+ * Version:         0.0.14
  * Author:          John Kraczek
  * Author URI:      https://johnkraczek.com/
  * License:         GPL-2.0+
