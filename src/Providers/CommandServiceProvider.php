@@ -3,6 +3,7 @@
 namespace YDTBWP\Providers;
 
 use YDTBWP\Commands\PluginToolsCommand;
+use YDTBWP\Interfaces\Provider;
 
 class CommandServiceProvider implements Provider
 {

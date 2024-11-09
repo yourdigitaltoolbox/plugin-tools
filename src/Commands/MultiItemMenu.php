@@ -122,7 +122,7 @@ class MultiItemMenu
                 $vendorName = "** Set Vendor **";
             }
 
-            $menu->addSplitItem(function (SplitItemBuilder $b) use ($name, $slug, $vendorName, $i) {
+            $menu->addSplitItem(function (SplitItemBuilder $b) use ($name, $slug, $vendorName) {
                 $b->setGutter(5)
                     ->addCheckboxItem($name, function (CliMenu $menu) use ($slug) {
                         $this->updateTrackedCallback($menu, $slug);

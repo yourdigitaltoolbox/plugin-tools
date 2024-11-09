@@ -14,5 +14,4 @@ return array(
     'b067bc7112e384b61c701452d53a14a8' => $vendorDir . '/mtdowling/jmespath.php/src/JmesPath.php',
     '8a9dc1de0ca7e01f3e08231539562f61' => $vendorDir . '/aws/aws-sdk-php/src/functions.php',
     '3107fc387871a28a226cdc8c598a0adb' => $vendorDir . '/php-school/cli-menu/src/Util/ArrayUtils.php',
-    'f7d21e6fd393cad643af238be50763f2' => $baseDir . '/src/helpers.php',
 );

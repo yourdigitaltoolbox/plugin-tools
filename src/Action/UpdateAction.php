@@ -4,9 +4,9 @@ namespace YDTBWP\Action;
 
 use \YDTBWP\Action\Strategies\ProxyUpdateStrategy;
 use \YDTBWP\Action\Strategies\SimpleUpdateStrategy;
-use \YDTBWP\Providers\Provider;
-use \YDTBWP\Utils\Requests;
+use \YDTBWP\Interfaces\Provider;
 use \YDTBWP\Utils\ZipDirectory;
+use \YDTBWP\Utils\Requests;
 
 class UpdateAction implements Provider
 {

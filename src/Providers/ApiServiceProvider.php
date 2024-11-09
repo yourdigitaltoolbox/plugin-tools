@@ -2,6 +2,8 @@
 
 namespace YDTBWP\Providers;
 
+use YDTBWP\Interfaces\Provider;
+
 class ApiServiceProvider implements Provider
 {
     public function register()

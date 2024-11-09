@@ -21,14 +21,6 @@
   "autoload": {
     "psr-4": {
       "YDTBWP\\": "src/"
-    },
-    "files": [
-      "src/helpers.php"
-    ]
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "YDTBWP\\Tests\\": "tests/"
     }
   },
   "require": {

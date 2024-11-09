@@ -1,6 +1,6 @@
 <?php
 
-namespace YDTBWP\Providers;
+namespace YDTBWP\Interfaces;
 
 interface Provider
 {

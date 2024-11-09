@@ -1,6 +1,6 @@
 {
   "name": "@roots/clover",
-  "version": "0.0.1",
+  "version": "0.0.13",
   "license": "MIT",
   "private": true,
   "description": "Clover",
@@ -17,20 +17,13 @@
       "email": "team@roots.io"
     }
   ],
-  "scripts": {
-    "build": "bud build",
-    "dev": "bud dev"
-  },
+  "scripts": {},
   "devDependencies": {
-    "@playwright/test": "^1.26.0",
-    "@roots/bud": "6.23.3",
-    "@roots/bud-preset-recommend": "6.23.3",
-    "@roots/bud-preset-wordpress": "6.23.3"
+    "@release-it/bumper": "^6.0.1",
+    "release-it": "^17.10.0",
+    "mini-css-extract-plugin": "^2.9.2"
   },
-  "dependencies": {
-    "@roots/wordpress-hmr": "6.23.3",
-    "caniuse-lite": ""
-  },
+  "dependencies": {},
   "browserslist": [
     "extends @roots/browserslist-config"
   ]
